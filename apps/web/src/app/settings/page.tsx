@@ -10,13 +10,13 @@ export default function AppSettings() {
       <div className="space-y-6 max-w-3xl">
         {/* Header */}
         <div className="border-b border-border pb-4 space-y-1">
-          <span className="text-[10px] uppercase font-bold tracking-widest text-primary">System Config</span>
+          <span className="text-[10px] uppercase font-bold tracking-widest text-primary">Configuration</span>
           <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
             <Settings className="h-4.5 w-4.5 text-primary" />
             <span>Settings</span>
           </h1>
           <p className="text-xs text-muted-foreground">
-            Configure system parameters, LLM key endpoints, and host settings for Nayak workflows.
+            Set up your helper connection, choose a theme, and manage security settings for Nayak.
           </p>
         </div>
 
@@ -29,11 +29,11 @@ export default function AppSettings() {
               <span>Theme Preferences</span>
             </h3>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Switch color settings. System mode automatically matches local workstation preferences.
+              Choose a color theme. Selecting "system" will automatically match your computer's theme.
             </p>
             <div className="flex items-center gap-3">
               <ThemeToggle />
-              <span className="text-xs text-muted-foreground">Toggle workspace color profile</span>
+              <span className="text-xs text-muted-foreground">Change color theme</span>
             </div>
           </div>
 
@@ -41,11 +41,11 @@ export default function AppSettings() {
           <div className="rounded-lg border border-border bg-card p-5 space-y-4">
             <h3 className="font-bold text-xs uppercase tracking-wider text-accent flex items-center gap-2">
               <Server className="h-4 w-4 text-primary" />
-              <span>API Gateway Connection</span>
+              <span>Helper Service Connection</span>
             </h3>
             <div className="space-y-2 text-xs">
               <label className="font-semibold text-muted-foreground block">
-                FastAPI Host Server Endpoint
+                Helper Service Address (URL)
               </label>
               <input
                 type="text"
@@ -59,10 +59,10 @@ export default function AppSettings() {
           <div className="rounded-lg border border-border bg-card p-5 space-y-4">
             <h3 className="font-bold text-xs uppercase tracking-wider text-accent flex items-center gap-2">
               <Shield className="h-4 w-4 text-primary" />
-              <span>LLM Graph Engine Integration</span>
+              <span>Assistant Connection Keys</span>
             </h3>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Set provider keys required to operate analysis graphs. Keys are processed securely over local environment contexts.
+              Provide the keys needed to connect to assistant services. These keys are stored safely on your computer.
             </p>
 
             <div className="space-y-3.5 text-xs">
@@ -97,7 +97,7 @@ export default function AppSettings() {
           <div className="flex justify-end">
             <button className="inline-flex items-center justify-center gap-2 rounded bg-primary text-primary-foreground hover:bg-primary/95 text-xs font-semibold h-9 px-6 shadow-sm transition-colors">
               <Save className="h-4 w-4" />
-              <span>Save System Settings</span>
+              <span>Save Settings</span>
             </button>
           </div>
         </div>

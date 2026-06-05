@@ -39,13 +39,13 @@ export default function VicharakBandhuDashboard() {
       <div className="space-y-8">
         {/* Module Header */}
         <div className="border-b border-border pb-6 flex flex-col gap-2">
-          <span className="text-[10px] uppercase font-bold tracking-widest text-primary">Module 02</span>
+          <span className="text-[10px] uppercase font-bold tracking-widest text-primary">Module 02: Review Files</span>
           <div className="flex items-center gap-2.5">
             <BookOpen className="h-6 w-6 text-primary" />
-            <h1 className="text-2xl font-bold text-foreground">VicharakBandhu</h1>
+            <h1 className="text-2xl font-bold text-foreground">VicharakBandhu (Review Documents)</h1>
           </div>
           <p className="text-muted-foreground max-w-[800px] text-sm">
-            Judicial review support module. Review case briefs, upload evidence transcripts, examine factual inconsistencies, and compile notes into review reports.
+            Review case files, witness statements, and document records. Note down key facts, check for differences in stories, and compile summaries.
           </p>
         </div>
 
@@ -53,8 +53,8 @@ export default function VicharakBandhuDashboard() {
         <div className="flex items-start gap-3.5 p-4 rounded bg-secondary/30 border border-border/80 text-xs text-muted-foreground">
           <Info className="h-4.5 w-4.5 text-primary shrink-0 mt-0.5" />
           <div className="space-y-1">
-            <span className="font-semibold text-foreground block">Workspace Utility Scope</span>
-            <span>VicharakBandhu operates as an assistive review editor. Upload briefs or tapes, track logical gap tags via Bench Notes, and audit argument confidence ratings. It is not an autonomous judge.</span>
+            <span className="font-semibold text-foreground block">How it works</span>
+            <span>VicharakBandhu helps you check documents and statements. You can upload files, write key case notes, and see a summary checklist of your case. It does not decide cases or act as a judge.</span>
           </div>
         </div>
 
@@ -63,7 +63,7 @@ export default function VicharakBandhuDashboard() {
           {/* Intake column */}
           <div className="space-y-5 bg-card border border-border p-5 rounded-lg shadow-sm">
             <h3 className="text-xs font-bold uppercase tracking-wider text-accent border-b border-border/60 pb-2">
-              Start New Review Case
+              Start New Document Review
             </h3>
             
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -74,7 +74,7 @@ export default function VicharakBandhuDashboard() {
               )}
 
               <div className="space-y-1 text-xs">
-                <label className="font-semibold text-muted-foreground block">Case Title</label>
+                <label className="font-semibold text-muted-foreground block">Case Name</label>
                 <input
                   type="text"
                   required
@@ -97,7 +97,7 @@ export default function VicharakBandhuDashboard() {
                 ) : (
                   <>
                     <Plus className="h-3.5 w-3.5" />
-                    <span>Create Case Folder</span>
+                    <span>Start Document Review</span>
                   </>
                 )}
               </button>
@@ -108,7 +108,7 @@ export default function VicharakBandhuDashboard() {
           <div className="md:col-span-2 rounded-lg border border-border bg-card p-5">
             <h3 className="text-xs font-bold uppercase tracking-wider text-accent border-b border-border/60 pb-2 flex items-center gap-2">
               <History className="h-4 w-4 text-primary" />
-              <span>Review History log</span>
+              <span>My Document Reviews</span>
             </h3>
             
             <div className="overflow-x-auto mt-4">
@@ -120,10 +120,10 @@ export default function VicharakBandhuDashboard() {
                 <table className="w-full text-xs text-left border-collapse">
                   <thead>
                     <tr className="border-b border-border/60 text-muted-foreground font-medium">
-                      <th className="pb-2 font-semibold">Case Folder ID</th>
-                      <th className="pb-2 font-semibold">Title</th>
+                      <th className="pb-2 font-semibold">Case ID</th>
+                      <th className="pb-2 font-semibold">Case Name</th>
                       <th className="pb-2 font-semibold">Status</th>
-                      <th className="pb-2 font-semibold">Date Created</th>
+                      <th className="pb-2 font-semibold">Date Started</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/40">
@@ -145,7 +145,7 @@ export default function VicharakBandhuDashboard() {
                               ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" 
                               : "bg-secondary text-muted-foreground border-border/50"
                           }`}>
-                            {rev.status}
+                            {rev.status === "active" ? "Active" : "Finalized"}
                           </span>
                         </td>
                         <td className="py-3">{new Date(rev.created_at).toLocaleDateString()}</td>
@@ -155,7 +155,7 @@ export default function VicharakBandhuDashboard() {
                 </table>
               ) : (
                 <div className="py-6 text-center text-xs text-muted-foreground">
-                  No active or historical review cases found. Use the intake panel on the left to start a case.
+                  No active or historical reviews found. Use the panel on the left to start one.
                 </div>
               )}
             </div>

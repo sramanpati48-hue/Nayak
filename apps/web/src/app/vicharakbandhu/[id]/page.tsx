@@ -192,13 +192,13 @@ export default function ReviewWorkspacePage({ params }: PageProps) {
           <div className="rounded-lg border border-primary/30 bg-card p-6 space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-border/60 pb-3 gap-2">
               <div className="text-left">
-                <span className="text-xs font-bold text-accent uppercase tracking-wider block">Structured Judicial Review Report</span>
+                <span className="text-xs font-bold text-accent uppercase tracking-wider block">Structured Review Report (Helpful Summary)</span>
                 <span className="text-[10px] text-muted-foreground">
                   Compiled: {new Date(activeReview.report.compiled_at).toLocaleString()}
                 </span>
               </div>
               <span className="text-xs px-2.5 py-1 rounded bg-primary/20 border border-primary/30 text-primary font-bold">
-                Final Assessment
+                Summary Complete
               </span>
             </div>
 
@@ -228,7 +228,7 @@ export default function ReviewWorkspacePage({ params }: PageProps) {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <h4 className="text-xs font-bold text-foreground uppercase tracking-wider border-l-2 border-accent pl-2">Extracted Claims Stand</h4>
+                  <h4 className="text-xs font-bold text-foreground uppercase tracking-wider border-l-2 border-accent pl-2">Claims & Points of View Found</h4>
                   <div className="p-3 bg-secondary/10 rounded border border-border/40 text-xs space-y-2 max-h-40 overflow-y-auto">
                     {activeReview.report.extracted_structure.claims?.map((c: any, i: number) => (
                       <div key={i} className="text-[11px] leading-normal">
@@ -244,7 +244,7 @@ export default function ReviewWorkspacePage({ params }: PageProps) {
             {/* Bench Notes Summary */}
             {activeReview.report.bench_notes_summary && (
               <div className="space-y-2 text-left">
-                <h4 className="text-xs font-bold text-foreground uppercase tracking-wider border-l-2 border-accent pl-2">Bench Notes Audit Summary</h4>
+                <h4 className="text-xs font-bold text-foreground uppercase tracking-wider border-l-2 border-accent pl-2">Case Notes Summary</h4>
                 <div className="p-3.5 bg-secondary/10 rounded border border-border/40 text-xs space-y-3">
                   <div className="flex flex-wrap gap-4 text-muted-foreground font-semibold">
                     <span>Total Notes: <span className="text-foreground">{activeReview.report.bench_notes_summary.total_notes}</span></span>
@@ -280,11 +280,11 @@ export default function ReviewWorkspacePage({ params }: PageProps) {
             {activeReview.report.confidence_summary && (
               <div className="grid gap-4 md:grid-cols-2 text-left">
                 <div className="space-y-2.5">
-                  <h4 className="text-xs font-bold text-foreground uppercase tracking-wider border-l-2 border-accent pl-2">Side Confidence Ledger</h4>
+                  <h4 className="text-xs font-bold text-foreground uppercase tracking-wider border-l-2 border-accent pl-2">Side Strength Checklist</h4>
                   <div className="p-3 bg-secondary/10 rounded border border-border/40 space-y-4">
                     <div className="space-y-1 text-xs">
                       <div className="flex justify-between items-center text-muted-foreground">
-                        <span className="font-semibold text-foreground">Petitioner Side Confidence</span>
+                        <span className="font-semibold text-foreground">Petitioner (your side) Strength</span>
                         <span className="font-bold text-primary">{activeReview.report.confidence_summary.side_a_confidence}%</span>
                       </div>
                       <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
@@ -301,7 +301,7 @@ export default function ReviewWorkspacePage({ params }: PageProps) {
                     </div>
                     <div className="space-y-1 text-xs">
                       <div className="flex justify-between items-center text-muted-foreground">
-                        <span className="font-semibold text-foreground">Respondent Side Confidence</span>
+                        <span className="font-semibold text-foreground">Respondent (the other side) Strength</span>
                         <span className="font-bold text-primary">{activeReview.report.confidence_summary.side_b_confidence}%</span>
                       </div>
                       <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
@@ -360,7 +360,7 @@ export default function ReviewWorkspacePage({ params }: PageProps) {
               <p>{activeReview.report.findings_summary}</p>
               <div className="border-t border-border/50 pt-2.5 text-[10px] italic text-muted-foreground/80 flex items-start gap-1.5 mt-2">
                 <Settings className="h-3.5 w-3.5 shrink-0 mt-0.5 text-primary" />
-                <span><strong>Explainability Clause</strong>: VicharakBandhu outputs, ledgers, warning flags, and reports are designed strictly as an assistive workspace dashboard. They do not constitute autonomous judgments, legal conclusions, or binding verdicts. Review assessments remain subject to human verification.</span>
+                <span><strong>Note on AI Assistance</strong>: VicharakBandhu outputs, checklists, warning flags, and reports are designed strictly as a helpful organizing tool. They do not represent real court decisions, legal judgments, or legal advice. All assessments should be checked by a human.</span>
               </div>
             </div>
           </div>
@@ -374,16 +374,16 @@ export default function ReviewWorkspacePage({ params }: PageProps) {
             {/* Ingestion Slots */}
             <div className="rounded-lg border border-border bg-card p-5 space-y-4">
               <h3 className="text-xs font-bold uppercase tracking-wider text-accent border-b border-border/60 pb-2">
-                Intake Board
+                Add Case Information
               </h3>
               
               {/* Text Intake Form */}
               <form onSubmit={handleTextIngest} className="space-y-2">
-                <label className="text-[11px] font-semibold text-muted-foreground block">Ingest Plain Text Brief</label>
+                <label className="text-[11px] font-semibold text-muted-foreground block">Type or Paste Case Details</label>
                 <textarea
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
-                  placeholder="Paste brief text to execute timeline checks..."
+                  placeholder="Paste case text or details here to review timeline and facts..."
                   rows={3}
                   className="w-full bg-secondary/20 border border-border rounded p-2 text-xs focus:outline-none focus:ring-1 focus:ring-primary text-foreground"
                 />
@@ -391,12 +391,12 @@ export default function ReviewWorkspacePage({ params }: PageProps) {
                   type="submit"
                   className="inline-flex items-center justify-center rounded bg-primary text-primary-foreground hover:bg-primary/95 text-xs font-semibold h-8 px-4 w-full transition-colors"
                 >
-                  Ingest Text Brief
+                  Save Text Details
                 </button>
               </form>
 
               <div className="border-t border-border/50 pt-4 space-y-3">
-                <span className="text-[11px] font-semibold text-muted-foreground block">File Upload Metadata</span>
+                <span className="text-[11px] font-semibold text-muted-foreground block">Upload Document or Voice Files</span>
                 
                 {/* Audio Upload */}
                 <div>
@@ -412,7 +412,7 @@ export default function ReviewWorkspacePage({ params }: PageProps) {
                     className="w-full flex items-center justify-center gap-2 border border-border hover:bg-secondary/40 h-9 rounded text-xs text-muted-foreground hover:text-foreground transition-all"
                   >
                     <Mic className="h-4 w-4 text-primary" />
-                    <span>Upload Courtroom Tapes</span>
+                    <span>Upload Recorded Tapes</span>
                   </button>
                 </div>
 
@@ -430,7 +430,7 @@ export default function ReviewWorkspacePage({ params }: PageProps) {
                     className="w-full flex items-center justify-center gap-2 border border-border hover:bg-secondary/40 h-9 rounded text-xs text-muted-foreground hover:text-foreground transition-all"
                   >
                     <FileText className="h-4 w-4 text-primary" />
-                    <span>Upload Case Document Briefs</span>
+                    <span>Upload Case Documents</span>
                   </button>
                 </div>
               </div>
@@ -438,7 +438,7 @@ export default function ReviewWorkspacePage({ params }: PageProps) {
               {/* Uploaded Documents List */}
               {activeDocuments.length > 0 && (
                 <div className="border-t border-border/50 pt-4 space-y-2">
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Ingested Files</span>
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Uploaded Files</span>
                   <div className="space-y-1.5 max-h-40 overflow-y-auto">
                     {activeDocuments.map((doc) => (
                       <div key={doc.id} className="flex justify-between items-center text-[11px] text-muted-foreground border-b border-border/40 pb-1.5">
@@ -456,7 +456,7 @@ export default function ReviewWorkspacePage({ params }: PageProps) {
             {/* Extracted Case Structure */}
             <div className="rounded-lg border border-border bg-card p-5 space-y-4">
               <h3 className="text-xs font-bold uppercase tracking-wider text-accent border-b border-border/60 pb-2">
-                Extracted Case Structure
+                Case Timeline & Arguments
               </h3>
               
               {activeReview.structure ? (
@@ -464,7 +464,7 @@ export default function ReviewWorkspacePage({ params }: PageProps) {
                   {/* Timeline */}
                   {activeReview.structure.timeline && (
                     <div className="space-y-2">
-                      <span className="font-semibold text-foreground block">Chronological Timeline</span>
+                      <span className="font-semibold text-foreground block">Timeline of Events</span>
                       <div className="space-y-2 border-l border-border/50 ml-2 pl-3">
                         {activeReview.structure.timeline.map((t, idx) => (
                           <div key={idx} className="relative space-y-0.5 text-[11px]">
@@ -479,11 +479,13 @@ export default function ReviewWorkspacePage({ params }: PageProps) {
                   {/* Claims */}
                   {activeReview.structure.claims && (
                     <div className="space-y-2 border-t border-border/40 pt-3">
-                      <span className="font-semibold text-foreground block">Identified Pleadings Claims</span>
+                      <span className="font-semibold text-foreground block">Key Arguments Found</span>
                       <div className="space-y-2">
                         {activeReview.structure.claims.map((c, idx) => (
                           <div key={idx} className="space-y-0.5 text-[11px]">
-                            <span className="font-semibold text-accent block">{c.side} Stand</span>
+                            <span className="font-semibold text-accent block">
+                              {c.side === "side_a" ? "Petitioner (your side)" : c.side === "side_b" ? "Respondent (the other side)" : c.side} Stand
+                            </span>
                             <span className="text-muted-foreground text-left block leading-normal">{c.text}</span>
                           </div>
                         ))}
@@ -493,7 +495,7 @@ export default function ReviewWorkspacePage({ params }: PageProps) {
                 </div>
               ) : (
                 <div className="py-6 text-center text-xs text-muted-foreground">
-                  Case structure is compiled automatically upon text or document intake.
+                  Timeline and arguments will appear here automatically after you paste text or upload files.
                 </div>
               )}
             </div>
@@ -505,7 +507,7 @@ export default function ReviewWorkspacePage({ params }: PageProps) {
               <div className="flex items-center justify-between border-b border-border/60 pb-2">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-accent flex items-center gap-1">
                   <Layers className="h-4 w-4 text-primary" />
-                  <span>Bench Notes / Entries</span>
+                  <span>Case Notes & Checklist</span>
                 </h3>
                 
                 {activeReview.status === "active" && (
@@ -522,7 +524,7 @@ export default function ReviewWorkspacePage({ params }: PageProps) {
               {noteFormOpen && activeReview.status === "active" && (
                 <form onSubmit={handleFormSubmit} className="p-4 border border-primary/20 bg-secondary/15 rounded-lg space-y-3 text-xs">
                   <span className="font-bold text-accent block border-b pb-1 mb-2">
-                    {editingId ? "Edit Bench Note" : "Create Bench Note"}
+                    {editingId ? "Edit Case Note" : "Create Case Note"}
                   </span>
                   
                   <div className="space-y-1">
@@ -537,7 +539,7 @@ export default function ReviewWorkspacePage({ params }: PageProps) {
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[10px] font-semibold text-muted-foreground block">Body Description</label>
+                    <label className="text-[10px] font-semibold text-muted-foreground block">Note Details</label>
                     <textarea
                       required
                       value={formBody}
@@ -549,63 +551,63 @@ export default function ReviewWorkspacePage({ params }: PageProps) {
 
                   <div className="grid gap-2 grid-cols-2">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-semibold text-muted-foreground block">Category</label>
+                      <label className="text-[10px] font-semibold text-muted-foreground block">Note Type</label>
                       <select
                         value={formCategory}
                         onChange={(e) => setFormCategory(e.target.value)}
                         className="w-full h-8 bg-card border border-border rounded px-2"
                       >
-                        <option value="timeline">Timeline</option>
-                        <option value="citation">Citation</option>
-                        <option value="testimony">Testimony</option>
+                        <option value="timeline">Date or Timeline</option>
+                        <option value="citation">Document Citation</option>
+                        <option value="testimony">Witness Statement</option>
                       </select>
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-[10px] font-semibold text-muted-foreground block">Impact Side</label>
+                      <label className="text-[10px] font-semibold text-muted-foreground block">Who does this help?</label>
                       <select
                         value={formSide}
                         onChange={(e) => setFormSide(e.target.value)}
                         className="w-full h-8 bg-card border border-border rounded px-2"
                       >
-                        <option value="petitioner">Petitioner</option>
-                        <option value="respondent">Respondent</option>
-                        <option value="neutral">Neutral</option>
+                        <option value="petitioner">Petitioner (your side)</option>
+                        <option value="respondent">Respondent (the other side)</option>
+                        <option value="neutral">Neutral / Unsure</option>
                       </select>
                     </div>
                   </div>
 
                   <div className="grid gap-2 grid-cols-2">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-semibold text-muted-foreground block">Materiality</label>
+                      <label className="text-[10px] font-semibold text-muted-foreground block">How important is this?</label>
                       <select
                         value={formMateriality}
                         onChange={(e) => setFormMateriality(e.target.value)}
                         className="w-full h-8 bg-card border border-border rounded px-2"
                       >
-                        <option value="high">High</option>
-                        <option value="medium">Medium</option>
-                        <option value="low">Low</option>
+                        <option value="high">Very important</option>
+                        <option value="medium">Somewhat important</option>
+                        <option value="low">Minor detail</option>
                       </select>
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-[10px] font-semibold text-muted-foreground block">Verification</label>
+                      <label className="text-[10px] font-semibold text-muted-foreground block">Fact-check status</label>
                       <select
                         value={formVerification}
                         onChange={(e) => setFormVerification(e.target.value)}
                         className="w-full h-8 bg-card border border-border rounded px-2"
                       >
-                        <option value="verified">Verified</option>
-                        <option value="unverified">Unverified</option>
-                        <option value="discrepancy">Discrepancy</option>
+                        <option value="verified">Verified (True)</option>
+                        <option value="unverified">Unverified (Unsure)</option>
+                        <option value="discrepancy">Discrepancy (Story differs)</option>
                       </select>
                     </div>
                   </div>
 
                   <div className="grid gap-2 grid-cols-2">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-semibold text-muted-foreground block">Source Reference</label>
+                      <label className="text-[10px] font-semibold text-muted-foreground block">Where was this found? (e.g. Page 4)</label>
                       <input
                         type="text"
                         value={formSource}
@@ -616,7 +618,7 @@ export default function ReviewWorkspacePage({ params }: PageProps) {
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-[10px] font-semibold text-muted-foreground block">Confidence effect</label>
+                      <label className="text-[10px] font-semibold text-muted-foreground block">Effect on Case Strength (%)</label>
                       <input
                         type="number"
                         step="1"
@@ -636,21 +638,21 @@ export default function ReviewWorkspacePage({ params }: PageProps) {
                         className="w-full h-8 bg-card border border-border rounded px-2 text-xs"
                       >
                         <option value="neutral">Neutral</option>
-                        <option value="corroboration">Corroboration</option>
-                        <option value="contradiction">Contradiction</option>
+                        <option value="corroboration">Corroboration (Agrees with story)</option>
+                        <option value="contradiction">Contradiction (Disagrees with story)</option>
                       </select>
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-[10px] font-semibold text-muted-foreground block">Source Strength</label>
+                      <label className="text-[10px] font-semibold text-muted-foreground block">Source Reliability</label>
                       <select
                         value={formSourceStrength}
                         onChange={(e) => setFormSourceStrength(e.target.value)}
                         className="w-full h-8 bg-card border border-border rounded px-2 text-xs"
                       >
-                        <option value="strong">Strong</option>
-                        <option value="moderate">Moderate</option>
-                        <option value="weak">Weak</option>
+                        <option value="strong">Strong / Trustworthy</option>
+                        <option value="moderate">Moderate / Normal</option>
+                        <option value="weak">Weak / Questionable</option>
                       </select>
                     </div>
                   </div>
@@ -664,7 +666,7 @@ export default function ReviewWorkspacePage({ params }: PageProps) {
                       className="rounded border-border bg-card h-4 w-4 text-primary focus:ring-1 focus:ring-primary"
                     />
                     <label htmlFor="formAiDetected" className="text-[10px] font-semibold text-muted-foreground cursor-pointer">
-                      Flag as AI-Detected Review Concern
+                      Mark as a concern spotted by the assistant
                     </label>
                   </div>
 
@@ -694,8 +696,8 @@ export default function ReviewWorkspacePage({ params }: PageProps) {
                       <div className="flex justify-between items-start">
                         <div className="flex flex-col text-left">
                           <span className="font-bold text-foreground text-sm">{entry.title}</span>
-                          <span className="text-[9px] text-muted-foreground capitalize mt-0.5">
-                            Category: {entry.category} | Materiality: {entry.materiality}
+                          <span className="text-[9px] text-muted-foreground mt-0.5">
+                            Type: {entry.category === "timeline" ? "Date/Timeline" : entry.category === "citation" ? "Document Citation" : entry.category === "testimony" ? "Witness Statement" : entry.category} | Importance: {entry.materiality === "high" ? "Very important" : entry.materiality === "medium" ? "Somewhat important" : entry.materiality === "low" ? "Minor detail" : entry.materiality}
                           </span>
                         </div>
                         
@@ -704,14 +706,14 @@ export default function ReviewWorkspacePage({ params }: PageProps) {
                             <button
                               onClick={() => openEditNoteForm(entry)}
                               className="p-1 text-muted-foreground hover:text-accent"
-                              title="Edit Entry"
+                                title="Edit Entry"
                             >
                               <Edit3 className="h-3.5 w-3.5" />
                             </button>
                             <button
                               onClick={() => deleteEntry(entry.id)}
                               className="p-1 text-muted-foreground hover:text-red-500"
-                              title="Delete Entry"
+                                title="Delete Entry"
                             >
                               <Trash2 className="h-3.5 w-3.5" />
                             </button>
@@ -723,31 +725,31 @@ export default function ReviewWorkspacePage({ params }: PageProps) {
 
                       <div className="flex flex-wrap gap-1.5 pt-1">
                         <span className="text-[9px] px-1.5 py-0.5 rounded bg-secondary border border-border/40 text-muted-foreground capitalize">
-                          Type: {entry.effect_type || "neutral"}
+                          Effect: {entry.effect_type === "corroboration" ? "Corroboration (Agrees with story)" : entry.effect_type === "contradiction" ? "Contradiction (Disagrees with story)" : entry.effect_type || "neutral"}
                         </span>
                         <span className="text-[9px] px-1.5 py-0.5 rounded bg-secondary border border-border/40 text-muted-foreground capitalize font-medium">
-                          Source Strength: {entry.source_strength || "moderate"}
+                          Source Reliability: {entry.source_strength || "moderate"}
                         </span>
                         {entry.ai_detected && (
                           <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-500 font-semibold">
-                            AI Detected
+                            Spotted by Assistant
                           </span>
                         )}
                       </div>
                       
                       <div className="flex justify-between items-center text-[10px] text-muted-foreground pt-1 border-t border-border/30">
-                        <span className="italic">Ref: {entry.source_reference || "None"}</span>
+                        <span className="italic">Found in: {entry.source_reference || "None"}</span>
                         <span className={`font-semibold ${
                           entry.confidence_effect < 0 ? "text-red-400" : "text-primary"
                         }`}>
-                          Effect: {entry.confidence_effect > 0 ? "+" : ""}{entry.confidence_effect}%
+                          Strength Effect: {entry.confidence_effect > 0 ? "+" : ""}{entry.confidence_effect}%
                         </span>
                       </div>
                     </div>
                   ))
                 ) : (
                   <div className="py-12 text-center text-xs text-muted-foreground">
-                    No Bench Notes recorded yet. Click the '+' icon above to add record entries manually.
+                    No case notes recorded yet. Click the '+' icon above to add important dates, citations, or statements manually.
                   </div>
                 )}
               </div>
@@ -760,7 +762,7 @@ export default function ReviewWorkspacePage({ params }: PageProps) {
             <div className="rounded-lg border border-border bg-card p-5 space-y-4">
               <h3 className="text-xs font-bold uppercase tracking-wider text-accent border-b border-border/60 pb-2 flex items-center gap-1.5">
                 <Award className="h-4.5 w-4.5 text-primary" />
-                <span>Confidence Ledger</span>
+                <span>Strength Checklist</span>
               </h3>
               
               <div className="space-y-4">
@@ -768,7 +770,7 @@ export default function ReviewWorkspacePage({ params }: PageProps) {
                 {activeReview.confidence_ledger && (
                   <div className="grid gap-3.5 grid-cols-2 pb-3 border-b border-border/40">
                     <div className="space-y-1 text-xs text-left">
-                      <span className="font-semibold text-muted-foreground block">Petitioner Side</span>
+                      <span className="font-semibold text-muted-foreground block">Petitioner (your side) Strength</span>
                       <span className="text-lg font-bold text-foreground block">
                         {activeReview.confidence_ledger.side_a_confidence !== undefined 
                           ? `${activeReview.confidence_ledger.side_a_confidence}%` 
@@ -787,7 +789,7 @@ export default function ReviewWorkspacePage({ params }: PageProps) {
                       </div>
                     </div>
                     <div className="space-y-1 text-xs text-left">
-                      <span className="font-semibold text-muted-foreground block">Respondent Side</span>
+                      <span className="font-semibold text-muted-foreground block">Respondent (the other side) Strength</span>
                       <span className="text-lg font-bold text-foreground block">
                         {activeReview.confidence_ledger.side_b_confidence !== undefined 
                           ? `${activeReview.confidence_ledger.side_b_confidence}%` 
@@ -844,7 +846,7 @@ export default function ReviewWorkspacePage({ params }: PageProps) {
             <div className="rounded-lg border border-border bg-card p-5 space-y-4">
               <h3 className="text-xs font-bold uppercase tracking-wider text-red-400 border-b border-border/60 pb-2 flex items-center gap-1.5">
                 <AlertTriangle className="h-4.5 w-4.5 text-red-400" />
-                <span>Caution Warning Flags</span>
+                <span>Warnings & Gaps</span>
               </h3>
               
               <div className="space-y-3.5 text-xs text-muted-foreground max-h-48 overflow-y-auto">
@@ -889,7 +891,7 @@ export default function ReviewWorkspacePage({ params }: PageProps) {
             <div className="rounded-lg border border-border bg-card p-5 space-y-4">
               <h3 className="text-xs font-bold uppercase tracking-wider text-accent border-b border-border/60 pb-2 flex items-center gap-1.5">
                 <Settings className="h-4 w-4 text-primary" />
-                <span>Audit Change Log</span>
+                <span>Case Strength History</span>
               </h3>
               
               <div className="space-y-3 max-h-44 overflow-y-auto text-left">
@@ -904,7 +906,7 @@ export default function ReviewWorkspacePage({ params }: PageProps) {
                   ))
                 ) : (
                   <div className="text-xs text-muted-foreground py-2 text-center">
-                    Audit logs are generated dynamically as Bench Notes are compiled.
+                    History of changes is updated dynamically as case notes are added.
                   </div>
                 )}
               </div>

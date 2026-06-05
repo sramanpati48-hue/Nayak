@@ -10,7 +10,7 @@ export default function SimulationArenaIntake() {
   const router = useRouter();
   const { createSession } = useNyaybandhuStore();
   
-  const [title, setTitle] = useState("Sandbox Argument Validation - Case A");
+  const [title, setTitle] = useState("Case Arguments Practice - Case A");
   const [description, setDescription] = useState("");
   const [strategy, setStrategy] = useState("textualist");
   const [loading, setLoading] = useState(false);
@@ -39,10 +39,10 @@ export default function SimulationArenaIntake() {
           <span className="text-[10px] uppercase font-bold tracking-widest text-primary">Nyaybandhu Intake</span>
           <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
             <Play className="h-4.5 w-4.5 text-primary" />
-            <span>Simulation Arena</span>
+            <span>Practice Arena</span>
           </h1>
           <p className="text-xs text-muted-foreground">
-            Configure a secure, sandboxed argument validation workspace. Test legal claims against distinct opposing counsel strategies.
+            Set up a safe space to test your case arguments. Compare your claims against different strategies the other side might use.
           </p>
         </div>
 
@@ -56,7 +56,7 @@ export default function SimulationArenaIntake() {
 
           {/* Title */}
           <div className="space-y-1.5 text-xs">
-            <label className="font-semibold text-muted-foreground block">Session Title</label>
+            <label className="font-semibold text-muted-foreground block">Practice Session Name</label>
             <input
               type="text"
               required
@@ -72,7 +72,7 @@ export default function SimulationArenaIntake() {
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Paste relevant pleadings, draft briefs, or summary questions to focus the debate..."
+              placeholder="Paste key facts, written statements, or case details to help focus the practice session..."
               rows={4}
               className="w-full bg-secondary/20 border border-border rounded p-3 text-xs focus:outline-none focus:ring-1 focus:ring-primary text-foreground"
             />
@@ -80,12 +80,12 @@ export default function SimulationArenaIntake() {
 
           {/* Strategy Option selection */}
           <div className="space-y-2 text-xs">
-            <label className="font-semibold text-muted-foreground block">Opposing Counsel Strategy</label>
+            <label className="font-semibold text-muted-foreground block">Opposing Strategy Style</label>
             <div className="grid gap-3 sm:grid-cols-3">
               {[
-                { id: "textualist", label: "Textualist", desc: "Strict literal readings of statute code." },
-                { id: "pragmatist", label: "Pragmatist", desc: "Focuses on sociological policy intent." },
-                { id: "precedent", label: "Precedent-Oriented", desc: "Relies heavily on appellate precedents." }
+                { id: "textualist", label: "Strictly by the book (literal)", desc: "Relies on the exact words of the law." },
+                { id: "pragmatist", label: "Practical/Purpose-oriented", desc: "Focuses on the intent and real-world impact of the law." },
+                { id: "precedent", label: "Based on past cases (precedents)", desc: "Relies on rulings made in similar cases in the past." }
               ].map((item) => (
                 <button
                   key={item.id}
@@ -108,7 +108,7 @@ export default function SimulationArenaIntake() {
           <div className="pt-2 border-t border-border/40 flex items-center justify-between">
             <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
               <ShieldAlert className="h-3.5 w-3.5 text-primary" />
-              Secure Sandbox Ingestion
+              Private and Secure
             </span>
             
             <button
@@ -119,10 +119,10 @@ export default function SimulationArenaIntake() {
               {loading ? (
                 <>
                   <Loader2 className="h-3 w-3 animate-spin" />
-                  <span>Configuring...</span>
+                  <span>Starting...</span>
                 </>
               ) : (
-                <span>Initialize Simulation</span>
+                <span>Start Practice Session</span>
               )}
             </button>
           </div>

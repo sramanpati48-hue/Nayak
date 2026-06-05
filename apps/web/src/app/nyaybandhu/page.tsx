@@ -66,11 +66,11 @@ export default function NyaybandhuDashboard() {
             <div>
               <div className="flex items-center gap-2 text-primary font-semibold text-sm mb-3">
                 <Briefcase className="h-4 w-4" />
-                <span>Check Real Arguments</span>
+                <span>Tell Us What Happened</span>
               </div>
-              <h3 className="text-base font-bold text-foreground">Spot gaps in real case documents</h3>
+              <h3 className="text-base font-bold text-foreground">Review a real-life issue</h3>
               <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
-                Look for gaps in case files, check references, and verify details in your written drafts.
+                Describe a real-life concern (like rent disputes, cheating, harassment, or agreements) in simple words. Get a two-sided review and a guidance report.
               </p>
             </div>
             <div className="mt-6">
@@ -78,7 +78,7 @@ export default function NyaybandhuDashboard() {
                 href="/nyaybandhu/real-life"
                 className="inline-flex items-center justify-center rounded bg-primary text-primary-foreground hover:bg-primary/95 text-xs font-semibold h-9 px-4 w-full transition-colors"
               >
-                Check Real Arguments
+                Review a Real Case
               </Link>
             </div>
           </div>

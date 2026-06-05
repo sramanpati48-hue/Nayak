@@ -45,7 +45,7 @@ export default function JudicialReports() {
       id: s.id,
       title: s.title,
       module: "nyaybandhu" as const,
-      category: s.mode === "practice" ? "Simulation Arena" : "Live Case Analysis",
+      category: s.mode === "practice" ? "Practice Arena" : "Check Real Arguments",
       status: s.status,
       created_at: s.created_at,
       summary: s.summary || s.description || "Active simulation in progress.",
@@ -53,7 +53,7 @@ export default function JudicialReports() {
         compiled_at: s.created_at, // Use created_at as compiled_at fallback
         case_overview: {
           title: s.title,
-          summary: s.description || "Adversarial courtroom simulation.",
+          summary: s.description || "Testing case arguments.",
           status: "Finalized"
         },
         description: s.description,
@@ -67,7 +67,7 @@ export default function JudicialReports() {
       id: r.id,
       title: r.title,
       module: "vicharakbandhu" as const,
-      category: "Judicial Review Support",
+      category: "Review Files & Gaps Summary",
       status: r.status,
       created_at: r.created_at,
       summary: r.report?.findings_summary || r.case_summary || "Active review folder in progress.",
@@ -154,24 +154,23 @@ export default function JudicialReports() {
     let content = "";
     if (item.module === "vicharakbandhu") {
       const rep = item.report;
-      content = `# NAYAK ASSISTIVE JUDICIAL REVIEW REPORT: ${item.title}\n` +
+      content = `# NAYAK CASE SUMMARY REPORT: ${item.title}\n` +
         `Status: Finalized\n` +
         `Date Compiled: ${new Date(rep.compiled_at).toLocaleString()}\n\n` +
         `--------------------------------------------------------------------------------\n` +
-        `DISCLAIMER: This report is compiled as an assistive tool to support legal and\n` +
-        `judicial analysis. It does NOT represent an autonomous judicial decision, verdict,\n` +
-        `or legally binding ruling. All content and confidence ledgers must be reviewed\n` +
-        `and verified by a qualified legal professional.\n` +
+        `DISCLAIMER: This report is compiled as a helpful case organizing summary. It does NOT\n` +
+        `represent legal advice, a court judgment, a verdict, or a lawyer's opinion.\n` +
+        `All information should be verified by a human or a qualified legal professional.\n` +
         `--------------------------------------------------------------------------------\n\n` +
         `## 1. Case Overview\n` +
         `Title: ${rep.case_overview?.title || item.title}\n` +
         `Summary: ${rep.case_overview?.summary || "N/A"}\n\n` +
         `## 2. Extracted Case Structure\n` +
-        `Claims Stand:\n` +
+        `Claims & Points of View:\n` +
         (rep.extracted_structure?.claims?.map((c: any) => `- [${c.side}] ${c.text}`).join("\n") || "No claims extracted") + "\n\n" +
         `Timeline:\n` +
         (rep.extracted_structure?.timeline?.map((t: any) => `- [${t.time}] ${t.event}`).join("\n") || "No timeline events extracted") + "\n\n" +
-        `## 3. Bench Notes Summary\n` +
+        `## 3. Case Notes Summary\n` +
         `Total Notes: ${rep.bench_notes_summary?.total_notes || 0}\n` +
         `- Timeline Notes: ${rep.bench_notes_summary?.timeline_count || 0}\n` +
         `- Citation Notes: ${rep.bench_notes_summary?.citation_count || 0}\n` +
@@ -183,36 +182,35 @@ export default function JudicialReports() {
           `  Note body: ${n.note_body}\n` +
           `  Reference: ${n.source_reference || "None"}\n`
         ).join("\n") || "No bench notes recorded") + "\n\n" +
-        `## 4. Confidence Ledger Summary\n` +
-        `- Petitioner Side Confidence: ${rep.confidence_summary?.side_a_confidence || 80}%\n` +
-        `- Respondent Side Confidence: ${rep.confidence_summary?.side_b_confidence || 80}%\n\n` +
-        `Category Ledgers:\n` +
+        `## 4. Case Strength Checklist Summary\n` +
+        `- Petitioner (your side) Strength: ${rep.confidence_summary?.side_a_confidence || 80}%\n` +
+        `- Respondent (the other side) Strength: ${rep.confidence_summary?.side_b_confidence || 80}%\n\n` +
+        `Category Estimates:\n` +
         (rep.confidence_summary?.ledger?.map((l: any) => `- ${l.label}: ${l.score}% (${l.status})`).join("\n") || "No ledger scores computed") + "\n\n" +
-        `## 5. Caution Warning Flags\n` +
+        `## 5. Warnings & Gaps\n` +
         (rep.caution_flags?.map((f: any) => `* [${f.severity.toUpperCase()}] ${f.title}\n  Description: ${f.description}`).join("\n") || "No critical caution flags active.") + "\n\n" +
         `## 6. Points to Keep in Mind\n` +
         (rep.points_to_keep_in_mind?.map((p: any) => `- ${p.text}`).join("\n") || "No suggestion checklist items.") + "\n\n" +
-        `## 7. Findings Digest\n` +
+        `## 7. Key Findings Summary\n` +
         `${rep.findings_summary}\n`;
     } else {
       const rep = item.report;
-      content = `# NAYAK ASSISTIVE LEGAL ANALYSIS VERDICT: ${item.title}\n` +
+      content = `# NAYAK CASE SUMMARY AND ANALYSIS: ${item.title}\n` +
         `Status: Finalized\n` +
         `Date Compiled: ${new Date(item.created_at).toLocaleString()}\n\n` +
         `--------------------------------------------------------------------------------\n` +
-        `DISCLAIMER: This verdict summary is compiled as an assistive tool to support\n` +
-        `adversarial legal analysis. It does NOT represent an autonomous judicial decision,\n` +
-        `verdict, or legally binding ruling.\n` +
+        `DISCLAIMER: This case summary is compiled as a helpful case organizing summary.\n` +
+        `It does NOT represent legal advice, a court judgment, a verdict, or a lawyer's opinion.\n` +
         `--------------------------------------------------------------------------------\n\n` +
         `## 1. Session Overview\n` +
         `Title: ${item.title}\n` +
         `Description: ${rep.description || "No description provided."}\n` +
-        `Mode: ${rep.mode === "practice" ? "Sandbox Simulation" : "Live Case Analysis"}\n` +
+        `Mode: ${rep.mode === "practice" ? "Practice Arena" : "Check Real Arguments"}\n` +
         `Opponent Strategy: ${rep.opposing_counsel_strategy}\n\n` +
-        `## 2. Adversarial Verdict Summary\n` +
+        `## 2. Discussion Summary\n` +
         `${rep.summary || "No verdict summary compiled."}\n\n` +
-        `## 3. Presiding Judge Verdict Details\n` +
-        `${rep.verdict || "No final rulings registered."}\n`;
+        `## 3. Discussion Details & Leaning\n` +
+        `${rep.verdict || "No final details registered."}\n`;
     }
 
     const blob = new Blob([content], { type: "text/markdown;charset=utf-8;" });
@@ -236,10 +234,10 @@ export default function JudicialReports() {
           <span className="text-[10px] uppercase font-bold tracking-widest text-primary">Compiled Records</span>
           <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
             <FileText className="h-4.5 w-4.5 text-primary" />
-            <span>Judicial Reports</span>
+            <span>Case Summaries</span>
           </h1>
           <p className="text-xs text-muted-foreground">
-            Analysis logs, citation audits, and case review summaries compiled from Nyaybandhu and VicharakBandhu workspaces.
+            Organized timelines, checklists, and case summaries compiled from your Nyaybandhu (See Both Sides) and VicharakBandhu (Review Documents) workspaces.
           </p>
         </div>
 
@@ -252,7 +250,7 @@ export default function JudicialReports() {
                 filter === "all" ? "bg-card text-accent shadow-sm border border-border/50" : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              All Workspace Reports
+              All Case Summaries
             </button>
             <button
               onClick={() => setFilter("nyaybandhu")}
@@ -296,7 +294,7 @@ export default function JudicialReports() {
               <table className="w-full text-xs text-left border-collapse">
                 <thead>
                   <tr className="border-b border-border bg-secondary/15 text-muted-foreground font-semibold">
-                    <th className="p-4">origin Module</th>
+                    <th className="p-4">Origin Module</th>
                     <th className="p-4">Report File Title</th>
                     <th className="p-4">Category</th>
                     <th className="p-4">Status / Availability</th>
@@ -338,7 +336,7 @@ export default function JudicialReports() {
                               : "bg-amber-500/10 text-amber-500 border-amber-500/20 font-bold"
                           }`}>
                             {isFinalized 
-                              ? (item.module === "nyaybandhu" ? "verdict sheet ready" : "report compiled") 
+                              ? (item.module === "nyaybandhu" ? "summary ready" : "finished review") 
                               : "active workspace"}
                           </span>
                         </td>
@@ -396,7 +394,7 @@ export default function JudicialReports() {
               </div>
               <h3 className="text-sm font-bold text-foreground">No reports archived</h3>
               <p className="text-xs text-muted-foreground mt-2 max-w-[320px]">
-                Run analysis audits or case reviews to generate downloadable courtroom summaries.
+                Run case discussions or document reviews to generate downloadable summaries.
               </p>
             </div>
           )}
@@ -418,7 +416,7 @@ export default function JudicialReports() {
             <div className="p-4 border-b border-border flex items-center justify-between">
               <div className="text-left">
                 <span className="text-[9px] uppercase font-bold tracking-widest text-primary">
-                  {selectedItem.module === "nyaybandhu" ? "Nyaybandhu Verdict" : "VicharakBandhu Review Report"}
+                  {selectedItem.module === "nyaybandhu" ? "Nyaybandhu Discussion Summary" : "VicharakBandhu Review Summary"}
                 </span>
                 <h2 id="modal-title" className="text-sm font-bold text-foreground truncate max-w-md">
                   {selectedItem.title}
@@ -440,8 +438,12 @@ export default function JudicialReports() {
               <div className="p-3.5 bg-primary/5 border border-primary/20 rounded text-[11px] text-muted-foreground flex gap-3.5 items-start">
                 <Settings className="h-4.5 w-4.5 text-primary shrink-0 mt-0.5" />
                 <div className="space-y-1">
-                  <span className="font-semibold text-foreground block">Workspace Assistive Disclaimer</span>
-                  <span>This generated output is compiled as a decision-support guide for legal professionals. It does not represent an autonomous judicial decision, final verdict, or binding ruling. All data should be verified against official courtroom records.</span>
+                  <span className="font-semibold text-foreground block">Workspace Assistant Note</span>
+                  <span>
+                    {selectedItem.report.mode === "real-life"
+                      ? "This generated output is compiled by a digital support tool to help you organize your thoughts. It does not represent a real court decision, legal judgment, verdict, or legal advice."
+                      : "This generated output is compiled as a helpful case organizing summary. It does not represent a real court decision, legal judgment, verdict, or legal advice. All information should be verified."}
+                  </span>
                 </div>
               </div>
 
@@ -471,11 +473,11 @@ export default function JudicialReports() {
                         </div>
                       </div>
                       <div className="space-y-1">
-                        <span className="font-bold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">Claims Stand</span>
+                        <span className="font-bold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">Claims & Points of View</span>
                         <div className="pl-2 space-y-1 max-h-36 overflow-y-auto">
                           {selectedItem.report.extracted_structure.claims?.map((c: any, i: number) => (
                             <div key={i} className="text-[11px]">
-                              <span className="font-semibold text-accent block">{c.side} Stand</span>
+                              <span className="font-semibold text-accent block">{c.side === "side_a" || c.side === "Petitioner" ? "Petitioner (your side)" : c.side === "side_b" || c.side === "Respondent" ? "Respondent (the other side)" : c.side} Stand</span>
                               <span>{c.text}</span>
                             </div>
                           )) || <span>No claims extracted.</span>}
@@ -487,12 +489,12 @@ export default function JudicialReports() {
                   {/* Notes Summary */}
                   {selectedItem.report.bench_notes_summary && (
                     <div className="space-y-1">
-                      <span className="font-bold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">Bench Notes Summary</span>
+                      <span className="font-bold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">Case Notes Summary</span>
                       <div className="pl-2 space-y-2">
                         <div className="flex gap-4 font-semibold text-foreground/80">
                           <span>Total: {selectedItem.report.bench_notes_summary.total_notes}</span>
-                          <span>Timeline: {selectedItem.report.bench_notes_summary.timeline_count}</span>
-                          <span>Citation: {selectedItem.report.bench_notes_summary.citation_count}</span>
+                          <span>Dates/Timelines: {selectedItem.report.bench_notes_summary.timeline_count}</span>
+                          <span>Document Citations: {selectedItem.report.bench_notes_summary.citation_count}</span>
                         </div>
                         {selectedItem.report.bench_notes_summary.notes && (
                           <div className="space-y-1.5 max-h-36 overflow-y-auto border-t border-border/30 pt-1.5">
@@ -517,11 +519,11 @@ export default function JudicialReports() {
                   {selectedItem.report.confidence_summary && (
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2">
-                        <span className="font-bold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">Side Confidence</span>
+                        <span className="font-bold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">Side Strength Estimate</span>
                         <div className="pl-2 space-y-3">
                           <div className="space-y-1">
                             <div className="flex justify-between items-center text-muted-foreground">
-                              <span>Petitioner</span>
+                              <span>Petitioner (your side)</span>
                               <span className="font-bold text-primary">{selectedItem.report.confidence_summary.side_a_confidence}%</span>
                             </div>
                             <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
@@ -538,7 +540,7 @@ export default function JudicialReports() {
                           </div>
                           <div className="space-y-1">
                             <div className="flex justify-between items-center text-muted-foreground">
-                              <span>Respondent</span>
+                              <span>Respondent (the other side)</span>
                               <span className="font-bold text-primary">{selectedItem.report.confidence_summary.side_b_confidence}%</span>
                             </div>
                             <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
@@ -557,7 +559,7 @@ export default function JudicialReports() {
                       </div>
 
                       <div className="space-y-2">
-                        <span className="font-bold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">Caution Flags</span>
+                        <span className="font-bold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">Warnings & Gaps</span>
                         <div className="pl-2 space-y-2 max-h-36 overflow-y-auto">
                           {selectedItem.report.caution_flags && selectedItem.report.caution_flags.length > 0 ? (
                             selectedItem.report.caution_flags.map((flag: any, i: number) => (
@@ -593,7 +595,7 @@ export default function JudicialReports() {
 
                   {/* Findings Summary */}
                   <div className="space-y-1">
-                    <span className="font-bold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">Findings Summary Digest</span>
+                    <span className="font-bold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">Findings Summary</span>
                     <p className="pl-2 leading-relaxed">{selectedItem.report.findings_summary}</p>
                   </div>
                 </div>
@@ -606,18 +608,22 @@ export default function JudicialReports() {
                     <span className="font-bold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">Session Overview</span>
                     <div className="pl-2 space-y-1">
                       <p><span className="font-semibold text-foreground">Title:</span> {selectedItem.title}</p>
-                      <p><span className="font-semibold text-foreground">Mode:</span> {selectedItem.report.mode === "practice" ? "Simulation Arena" : "Live Case Analysis"}</p>
-                      <p><span className="font-semibold text-foreground">Strategy:</span> {selectedItem.report.opposing_counsel_strategy} strategy</p>
+                      <p><span className="font-semibold text-foreground">Mode:</span> {selectedItem.report.mode === "practice" ? "Practice Arena" : "Real Case Review"}</p>
+                      <p><span className="font-semibold text-foreground">Strategy:</span> {selectedItem.report.opposing_counsel_strategy === "textualist" ? "Strictly by the book (literal)" : selectedItem.report.opposing_counsel_strategy === "pragmatist" ? "Practical/Purpose-oriented" : "Based on past cases (precedents)"} strategy</p>
                     </div>
                   </div>
 
                   <div className="space-y-1">
-                    <span className="font-bold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">Final Summary Digest</span>
+                    <span className="font-bold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">
+                      {selectedItem.report.mode === "real-life" ? "Case Guidance Review" : "Final Summary Digest"}
+                    </span>
                     <p className="pl-2 leading-relaxed">{selectedItem.report.summary}</p>
                   </div>
 
                   <div className="space-y-1">
-                    <span className="font-bold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">Bench Verdict & Ruling details</span>
+                    <span className="font-bold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">
+                      {selectedItem.report.mode === "real-life" ? "Case Strength Overview & Leaning" : "Discussion Details & Leaning"}
+                    </span>
                     <div className="p-3.5 bg-secondary/15 rounded border border-border/40 pl-2 leading-relaxed">
                       <span className="font-bold text-accent block text-sm mb-1.5">{selectedItem.report.verdict?.split(".")[0]}</span>
                       <p>{selectedItem.report.verdict?.split(".").slice(1).join(".")}</p>

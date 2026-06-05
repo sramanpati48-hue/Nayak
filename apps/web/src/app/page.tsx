@@ -27,7 +27,7 @@ export default function Home() {
       <div className="space-y-8">
         {/* Banner Section */}
         <div className="border-b border-border pb-6 flex flex-col gap-2">
-          <span className="text-[10px] uppercase font-bold tracking-widest text-primary">Your Legal Case Assistant</span>
+          <span className="text-[10px] uppercase font-bold tracking-widest text-primary">A tool to help you understand and organize your case</span>
           <h1 className="text-3xl font-bold tracking-tight text-foreground md:text-4xl">
             Nayak
           </h1>
@@ -135,7 +135,7 @@ export default function Home() {
         {/* Global Disclaimer */}
         <div className="rounded-lg border border-border bg-secondary/20 p-5 text-xs text-muted-foreground leading-relaxed mt-6">
           <p className="font-semibold text-foreground mb-1">Important Note:</p>
-          <p>Nayak is a supportive computer tool designed to help you organize documents, facts, and arguments. It is <strong>not</strong> a lawyer, a judge, or a court, and it <strong>cannot</strong> give you legal advice or decide a case. Please consult a qualified lawyer for legal representation.</p>
+          <p>Nayak is a digital support tool designed to help you organize documents, facts, and arguments. It is <strong>not</strong> a lawyer, a judge, or a court, and it <strong>cannot</strong> give you legal advice or decide a case. Please consult a qualified lawyer for legal representation.</p>
         </div>
       </div>
     </DashboardLayout>
