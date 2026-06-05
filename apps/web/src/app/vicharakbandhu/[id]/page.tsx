@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, use } from "react";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { useVicharakBandhuStore, BenchNoteEntry } from "@/store/vicharakbandhu";
 import { 
@@ -26,7 +26,7 @@ interface PageProps {
 }
 
 export default function ReviewWorkspacePage({ params }: PageProps) {
-  const { id } = React.use(params);
+  const { id } = use(params);
   
   const {
     activeReview,

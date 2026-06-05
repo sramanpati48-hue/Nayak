@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, use } from "react";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { useNyaybandhuStore, TranscriptEvent } from "@/store/nyaybandhu";
 import { 
@@ -20,7 +20,7 @@ interface PageProps {
 }
 
 export default function SessionPage({ params }: PageProps) {
-  const { id } = React.use(params);
+  const { id } = use(params);
   
   const {
     activeSession,
@@ -228,101 +228,364 @@ export default function SessionPage({ params }: PageProps) {
         </div>
 
         {/* Finalized Summary Dashboards */}
-        {activeSession.status === "finalized" && (
-          activeSession.mode === "real-life" ? (
-            <div className="rounded-lg border border-primary/30 bg-card p-6 space-y-6 text-left">
-              {/* Report Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-border/60 pb-3 gap-2">
-                <div>
-                  <span className="text-[10px] uppercase font-bold tracking-widest text-primary">Nayak Case Guidance Report</span>
-                  <h2 className="text-lg font-bold text-foreground mt-0.5">Your Case Guidance Report</h2>
+        {activeSession.status === "finalized" && (() => {
+          if (activeSession.mode === "real-life") {
+            let parsedSummary: any = null;
+            try {
+              if (activeSession.summary) {
+                parsedSummary = JSON.parse(activeSession.summary);
+              }
+            } catch (e) {
+              console.warn("Failed to parse dynamic summary:", e);
+            }
+
+            if (parsedSummary) {
+              return (
+                <div className="rounded-lg border border-primary/30 bg-card p-6 space-y-6 text-left">
+                  {/* Report Header */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-border/60 pb-3 gap-2">
+                    <div>
+                      <span className="text-[10px] uppercase font-bold tracking-widest text-primary">Nayak Case Guidance Report</span>
+                      <h2 className="text-lg font-bold text-foreground mt-0.5">Your Case Guidance Report</h2>
+                    </div>
+                    <div className="flex gap-2">
+                      <span className="text-[10px] uppercase font-bold px-2 py-1 bg-primary/10 border border-primary/20 text-primary rounded">
+                        Matter: {parsedSummary.matter_type}
+                      </span>
+                      <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded border ${
+                        parsedSummary.urgency_level === "high"
+                          ? "bg-red-500/10 border-red-500/20 text-red-500"
+                          : parsedSummary.urgency_level === "medium"
+                            ? "bg-amber-500/10 border-amber-500/20 text-amber-500"
+                            : "bg-secondary border-border/50 text-muted-foreground"
+                      }`}>
+                        Urgency: {parsedSummary.urgency_level}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Disclaimer */}
+                  <div className="p-3.5 bg-secondary/35 border border-border/80 rounded text-xs text-muted-foreground leading-relaxed">
+                    <strong>About this Guidance Report</strong>: {parsedSummary.disclaimer || "This is a preliminary, fact-based legal information output and not a final legal opinion."}
+                  </div>
+
+                  {/* 1. What Happened */}
+                  <div className="space-y-1.5">
+                    <span className="font-semibold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">1. What Happened (Your Story)</span>
+                    <div className="pl-2 space-y-1.5 text-xs text-muted-foreground leading-relaxed">
+                      {parsedSummary.facts?.map((fact: string, idx: number) => (
+                        <p key={idx}>{fact}</p>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 2. Case Strength Overview */}
+                  <div className="space-y-1.5">
+                    <span className="font-semibold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">2. Case Strength Overview</span>
+                    <div className="pl-2 space-y-1">
+                      <p className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                        <span>Status:</span>
+                        <span className="text-accent">{activeSession.verdict?.split(".")[0]}</span>
+                      </p>
+                      <p className="text-xs text-muted-foreground leading-relaxed mt-1">
+                        {activeSession.verdict?.split(".").slice(1).join(".")}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 3. Guidance Review */}
+                  <div className="space-y-1.5">
+                    <span className="font-semibold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">3. Guidance Review</span>
+                    <p className="pl-2 text-xs text-muted-foreground leading-relaxed">
+                      {parsedSummary.summary}
+                    </p>
+                  </div>
+
+                  {/* Strengths & Gaps (Weaknesses) */}
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <span className="font-semibold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">Case Strengths</span>
+                      <ul className="pl-6 list-disc text-xs text-muted-foreground space-y-1">
+                        {parsedSummary.strengths?.map((str: string, idx: number) => (
+                          <li key={idx}>{str}</li>
+                        )) || <li>No clear strengths identified yet.</li>}
+                      </ul>
+                    </div>
+                    <div className="space-y-1.5">
+                      <span className="font-semibold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">Challenges / Gaps</span>
+                      <ul className="pl-6 list-disc text-xs text-muted-foreground space-y-1">
+                        {parsedSummary.weaknesses_or_gaps?.map((weak: string, idx: number) => (
+                          <li key={idx}>{weak}</li>
+                        )) || <li>No gaps or weaknesses identified yet.</li>}
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* Timeline & People */}
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <span className="font-semibold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">Timeline of Events</span>
+                      <div className="pl-2 space-y-2 text-xs text-muted-foreground">
+                        {parsedSummary.timeline?.map((t: any, idx: number) => (
+                          <div key={idx} className="border-b border-border/30 pb-1.5 last:border-0">
+                            <div className="flex justify-between items-center">
+                              <span className="font-bold text-foreground">{t.date}</span>
+                              <span className="text-[9px] uppercase bg-secondary px-1.5 py-0.5 rounded border border-border/50 font-semibold">{t.certainty}</span>
+                            </div>
+                            <p className="mt-0.5 leading-relaxed">{t.event}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <span className="font-semibold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">People Involved</span>
+                      <div className="pl-2 space-y-2 text-xs text-muted-foreground">
+                        {parsedSummary.people_involved?.map((p: any, idx: number) => (
+                          <div key={idx} className="flex justify-between items-center border-b border-border/30 pb-1.5 last:border-0">
+                            <div>
+                              <span className="font-semibold text-foreground block">{p.name}</span>
+                              <span className="text-[10px] text-muted-foreground/80 block mt-0.5">{p.role}</span>
+                            </div>
+                            <span className={`text-[9px] uppercase px-1.5 py-0.5 rounded border font-semibold ${
+                              p.status === "confirmed" 
+                                ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500" 
+                                : "bg-amber-500/10 border-amber-500/20 text-amber-500"
+                            }`}>{p.status}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Relief Sought & Documents Check */}
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <span className="font-semibold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">Relief Sought (What you want)</span>
+                      <ul className="pl-6 list-disc text-xs text-muted-foreground space-y-1">
+                        {parsedSummary.relief_sought?.map((rel: string, idx: number) => (
+                          <li key={idx}>{rel}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="space-y-1.5">
+                      <span className="font-semibold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">Documents Audit</span>
+                      <div className="pl-2 space-y-2.5 text-xs text-muted-foreground">
+                        {parsedSummary.documents_available?.map((d: any, idx: number) => (
+                          <div key={idx} className="border-b border-border/30 pb-2 last:border-0">
+                            <div className="flex justify-between items-center">
+                              <span className="font-bold text-foreground">{d.document}</span>
+                              <span className={`text-[9px] uppercase px-1.5 py-0.5 rounded border font-semibold ${
+                                d.status === "available" 
+                                  ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500"
+                                  : d.status === "missing" 
+                                    ? "bg-red-500/10 border-red-500/20 text-red-500"
+                                    : "bg-amber-500/10 border-amber-500/20 text-amber-500"
+                              }`}>{d.status.replace(/_/g, " ")}</span>
+                            </div>
+                            <p className="mt-0.5 leading-relaxed text-[11px]">{d.relevance}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Risks & Issues */}
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <span className="font-semibold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">Immediate Risks</span>
+                      <div className="pl-2 space-y-2 text-xs text-muted-foreground">
+                        {parsedSummary.immediate_risks?.map((r: any, idx: number) => (
+                          <div key={idx} className="border border-border/60 bg-secondary/15 rounded p-2.5 space-y-1">
+                            <div className="flex justify-between items-center">
+                              <span className="font-bold text-foreground">{r.risk}</span>
+                              <span className={`text-[9px] uppercase px-1.5 py-0.5 rounded border font-semibold ${
+                                r.level === "high"
+                                  ? "bg-red-500/10 border-red-500/20 text-red-500"
+                                  : r.level === "moderate"
+                                    ? "bg-amber-500/10 border-amber-500/20 text-amber-500"
+                                    : "bg-secondary border-border/50 text-muted-foreground"
+                              }`}>{r.level}</span>
+                            </div>
+                            <p className="leading-relaxed text-[11px]">{r.reason}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <span className="font-semibold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">Preliminary Legal Issues</span>
+                      <div className="pl-2 space-y-2 text-xs text-muted-foreground">
+                        {parsedSummary.legal_issues_preliminary?.map((i: any, idx: number) => (
+                          <div key={idx} className="border border-border/60 bg-secondary/15 rounded p-2.5 space-y-1">
+                            <div className="flex justify-between items-center">
+                              <span className="font-bold text-foreground">{i.issue}</span>
+                              <span className={`text-[9px] uppercase px-1.5 py-0.5 rounded border font-semibold ${
+                                i.confidence === "high"
+                                  ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500"
+                                  : i.confidence === "medium"
+                                    ? "bg-amber-500/10 border-amber-500/20 text-amber-500"
+                                    : "bg-red-500/10 border-red-500/20 text-red-500"
+                              }`}>{i.confidence} confidence</span>
+                            </div>
+                            <p className="leading-relaxed text-[11px]">{i.reason}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 4. Practical Next Steps & Seek Help */}
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <span className="font-semibold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">4. Practical Next Steps</span>
+                      <ul className="pl-6 list-disc text-xs text-muted-foreground space-y-1">
+                        {parsedSummary.recommended_next_steps?.map((step: string, idx: number) => (
+                          <li key={idx}>{step}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="space-y-1.5">
+                      <span className="font-semibold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">5. Where You Can Seek Help</span>
+                      <ul className="pl-6 list-disc text-xs text-muted-foreground space-y-1">
+                        {parsedSummary.safety_flag && (
+                          <li className="text-red-400 font-semibold">Immediate safety danger: Go to a safe place and call Police (112) or Women Helpline (1091).</li>
+                        )}
+                        <li>District Legal Services Authority (DLSA) for free legal aid in your region.</li>
+                        {parsedSummary.matter_type === "landlord-tenant" && (
+                          <li>Rent Control Authority or local Sub-Divisional Magistrate (SDM).</li>
+                        )}
+                        {parsedSummary.matter_type === "employment/salary dispute" && (
+                          <li>Labor Commissioner or regional labor aid cell.</li>
+                        )}
+                        {parsedSummary.matter_type === "consumer complaint" && (
+                          <li>National Consumer Helpline (1915 / National Consumer Dispute Redressal Commission).</li>
+                        )}
+                        {parsedSummary.matter_type === "cyber abuse" && (
+                          <li>National Cyber Crime Portal (1930 / cybercrime.gov.in).</li>
+                        )}
+                        <li>Consult a licensed advocate to draft and send a formal legal notice.</li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* Follow-up Questions (Gaps) */}
+                  {parsedSummary.follow_up_questions && parsedSummary.follow_up_questions.length > 0 && (
+                    <div className="space-y-2 p-4 border border-amber-500/20 bg-amber-500/5 rounded-lg">
+                      <span className="font-bold text-amber-500 text-xs uppercase tracking-wider block text-left">Important Follow-up Questions to Address Gaps:</span>
+                      <ul className="pl-6 list-decimal text-xs text-muted-foreground space-y-1.5 mt-1.5 text-left">
+                        {parsedSummary.follow_up_questions.map((q: string, idx: number) => (
+                          <li key={idx} className="font-medium text-foreground/90">{q}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {parsedSummary.safety_flag && (
+                    <div className="p-3.5 border border-red-500/20 bg-red-500/5 rounded text-xs text-muted-foreground leading-relaxed">
+                      <strong className="text-red-500">Urgent Safety Warning</strong>: This situation involves safety hazards. Please do not confront the other side alone. Prioritize your physical safety and contact the appropriate helplines immediately.
+                    </div>
+                  )}
                 </div>
-                <span className="text-xs px-2.5 py-1 rounded bg-primary/20 border border-primary/30 text-primary font-bold">
-                  Summary Ready
-                </span>
-              </div>
+              );
+            }
+          }
 
-              {/* Disclaimer */}
-              <div className="p-3.5 bg-secondary/35 border border-border/80 rounded text-xs text-muted-foreground leading-relaxed">
-                <strong>About this Guidance Report</strong>: This report is compiled by Nayak (a digital support tool) to help you organize your thoughts and see both sides of your issue. It is <strong>not</strong> legal advice, a court judgment, or an official decision. Always consult a qualified lawyer or legal aid service for legal representation.
-              </div>
+          // Fallback / standard real-life or practice render
+          return (
+            activeSession.mode === "real-life" ? (
+              <div className="rounded-lg border border-primary/30 bg-card p-6 space-y-6 text-left">
+                {/* Report Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-border/60 pb-3 gap-2">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold tracking-widest text-primary">Nayak Case Guidance Report</span>
+                    <h2 className="text-lg font-bold text-foreground mt-0.5">Your Case Guidance Report</h2>
+                  </div>
+                  <span className="text-xs px-2.5 py-1 rounded bg-primary/20 border border-primary/30 text-primary font-bold">
+                    Summary Ready
+                  </span>
+                </div>
 
-              {/* What Happened (Original Story) */}
-              <div className="space-y-1.5">
-                <span className="font-semibold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">1. Your Story</span>
-                <p className="pl-2 text-xs text-muted-foreground leading-relaxed">{cleanDescription}</p>
-              </div>
+                {/* Disclaimer */}
+                <div className="p-3.5 bg-secondary/35 border border-border/80 rounded text-xs text-muted-foreground leading-relaxed">
+                  <strong>About this Guidance Report</strong>: This report is compiled by Nayak (a digital support tool) to help you organize your thoughts and see both sides of your issue. It is <strong>not</strong> legal advice, a court judgment, or an official decision. Always consult a qualified lawyer or legal aid service for legal representation.
+                </div>
 
-              {/* Case Leaning */}
-              <div className="space-y-1.5">
-                <span className="font-semibold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">2. Case Strength Overview</span>
-                <div className="pl-2 space-y-1">
-                  <p className="text-xs font-semibold text-foreground">
-                    Leaning Status: <span className="text-accent">{activeSession.verdict?.split(".")[0]}</span>
+                {/* What Happened (Original Story) */}
+                <div className="space-y-1.5">
+                  <span className="font-semibold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">1. Your Story</span>
+                  <p className="pl-2 text-xs text-muted-foreground leading-relaxed">{cleanDescription}</p>
+                </div>
+
+                {/* Case Leaning */}
+                <div className="space-y-1.5">
+                  <span className="font-semibold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">2. Case Strength Overview</span>
+                  <div className="pl-2 space-y-1">
+                    <p className="text-xs font-semibold text-foreground">
+                      Leaning Status: <span className="text-accent">{activeSession.verdict?.split(".")[0]}</span>
+                    </p>
+                    <p className="text-xs text-muted-foreground leading-relaxed mt-1">
+                      {activeSession.verdict?.split(".").slice(1).join(".")}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Case Summary */}
+                <div className="space-y-1.5">
+                  <span className="font-semibold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">3. Guidance Review</span>
+                  <p className="pl-2 text-xs text-muted-foreground leading-relaxed">
+                    {activeSession.summary}
                   </p>
-                  <p className="text-xs text-muted-foreground leading-relaxed mt-1">
+                </div>
+
+                {/* Next Steps and Where to Report */}
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <span className="font-semibold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">4. Practical Next Steps</span>
+                    <ul className="pl-6 list-disc text-xs text-muted-foreground space-y-1">
+                      <li>Review the detailed points listed in the case logs.</li>
+                      <li>Gather timestamped photos, emails, receipts, or contracts.</li>
+                      <li>Send a written follow-up or demand notice to the other side if safe to do so.</li>
+                    </ul>
+                  </div>
+                  <div className="space-y-1.5">
+                    <span className="font-semibold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">5. Where You Can Seek Help</span>
+                    <ul className="pl-6 list-disc text-xs text-muted-foreground space-y-1">
+                      <li>Local police station (for danger or safety threats).</li>
+                      <li>District Legal Services Authority (DLSA) for free legal aid.</li>
+                      <li>National Consumer Helpline (1915) for consumer/cheating matters.</li>
+                      <li>Cybercrime portal (1930) for online fraud or threat cases.</li>
+                    </ul>
+                  </div>
+                </div>
+
+                {showSafetyAlert && (
+                  <div className="p-3 border border-red-500/20 bg-red-500/5 rounded text-xs text-muted-foreground">
+                    <strong className="text-red-500">Urgent Safety Reminder</strong>: This matter involves safety concerns. We strongly encourage you to prioritize your safety and contact local authorities or the helplines listed on the right sidebar immediately.
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="grid gap-6 md:grid-cols-3 text-left">
+                {/* Verdict Gauge */}
+                <div className="rounded-lg border border-primary/30 bg-card p-5 space-y-2 flex flex-col justify-center">
+                  <span className="text-[10px] uppercase font-bold tracking-widest text-primary">Argument Leaning</span>
+                  <div className="text-3xl font-extrabold text-accent">{activeSession.verdict?.split(".")[0]}</div>
+                  <p className="text-[11px] text-muted-foreground leading-normal mt-1">
                     {activeSession.verdict?.split(".").slice(1).join(".")}
                   </p>
                 </div>
-              </div>
-
-              {/* Case Summary */}
-              <div className="space-y-1.5">
-                <span className="font-semibold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">3. Guidance Review</span>
-                <p className="pl-2 text-xs text-muted-foreground leading-relaxed">
-                  {activeSession.summary}
-                </p>
-              </div>
-
-              {/* Next Steps and Where to Report */}
-              <div className="grid gap-6 md:grid-cols-2">
-                <div className="space-y-1.5">
-                  <span className="font-semibold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">4. Practical Next Steps</span>
-                  <ul className="pl-6 list-disc text-xs text-muted-foreground space-y-1">
-                    <li>Review the detailed points listed in the case logs.</li>
-                    <li>Gather timestamped photos, emails, receipts, or contracts.</li>
-                    <li>Send a written follow-up or demand notice to the other side if safe to do so.</li>
-                  </ul>
-                </div>
-                <div className="space-y-1.5">
-                  <span className="font-semibold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">5. Where You Can Seek Help</span>
-                  <ul className="pl-6 list-disc text-xs text-muted-foreground space-y-1">
-                    <li>Local police station (for danger or safety threats).</li>
-                    <li>District Legal Services Authority (DLSA) for free legal aid.</li>
-                    <li>National Consumer Helpline (1915) for consumer/cheating matters.</li>
-                    <li>Cybercrime portal (1930) for online fraud or threat cases.</li>
-                  </ul>
+                
+                {/* Case Summary */}
+                <div className="md:col-span-2 rounded-lg border border-border bg-card p-5 space-y-2">
+                  <span className="text-[10px] uppercase font-bold tracking-widest text-primary">Completed Case Summary</span>
+                  <h4 className="text-xs font-bold text-foreground">How Your Arguments Look</h4>
+                  <p className="text-xs text-muted-foreground leading-relaxed mt-1.5">
+                    {activeSession.summary}
+                  </p>
                 </div>
               </div>
-
-              {showSafetyAlert && (
-                <div className="p-3 border border-red-500/20 bg-red-500/5 rounded text-xs text-muted-foreground">
-                  <strong className="text-red-500">Urgent Safety Reminder</strong>: This matter involves safety concerns. We strongly encourage you to prioritize your safety and contact local authorities or the helplines listed on the right sidebar immediately.
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="grid gap-6 md:grid-cols-3 text-left">
-              {/* Verdict Gauge */}
-              <div className="rounded-lg border border-primary/30 bg-card p-5 space-y-2 flex flex-col justify-center">
-                <span className="text-[10px] uppercase font-bold tracking-widest text-primary">Argument Leaning</span>
-                <div className="text-3xl font-extrabold text-accent">{activeSession.verdict?.split(".")[0]}</div>
-                <p className="text-[11px] text-muted-foreground leading-normal mt-1">
-                  {activeSession.verdict?.split(".").slice(1).join(".")}
-                </p>
-              </div>
-              
-              {/* Case Summary */}
-              <div className="md:col-span-2 rounded-lg border border-border bg-card p-5 space-y-2">
-                <span className="text-[10px] uppercase font-bold tracking-widest text-primary">Completed Case Summary</span>
-                <h4 className="text-xs font-bold text-foreground">How Your Arguments Look</h4>
-                <p className="text-xs text-muted-foreground leading-relaxed mt-1.5">
-                  {activeSession.summary}
-                </p>
-              </div>
-            </div>
-          )
-        )}
+            )
+          );
+        })()}
 
         {/* Core Workspace Transcript Grid */}
         <div className="grid gap-6 lg:grid-cols-4">
@@ -358,12 +621,12 @@ export default function SessionPage({ params }: PageProps) {
                       speakerColor = "text-accent font-bold";
                       borderStyle = "border-l-primary/50";
                     } else if (event.role === "petitioner" || event.speaker.toLowerCase().includes("petitioner")) {
-                      speakerName = "Support Review (AI Agent)";
+                      speakerName = "Support Review";
                       speakerColor = "text-emerald-500 font-extrabold";
                       borderStyle = "border-l-emerald-500/40";
                       containerBg = "bg-emerald-500/5 p-2 rounded-r";
                     } else if (event.role === "respondent" || event.speaker.toLowerCase().includes("opposing")) {
-                      speakerName = "Challenge Review (AI Agent)";
+                      speakerName = "Challenge Review";
                       speakerColor = "text-amber-500 font-extrabold";
                       borderStyle = "border-l-amber-500/40";
                       containerBg = "bg-amber-500/5 p-2 rounded-r";
@@ -456,11 +719,11 @@ export default function SessionPage({ params }: PageProps) {
                       speakerName = "Guide";
                       speakerColor = "text-accent font-bold";
                     } else if (streamingEvent.role === "petitioner" || streamingEvent.speaker?.toLowerCase().includes("petitioner")) {
-                      speakerName = "Support Review (AI Agent)";
+                      speakerName = "Support Review";
                       speakerColor = "text-emerald-500 font-extrabold";
                       borderStyle = "border-l-emerald-500";
                     } else if (streamingEvent.role === "respondent" || streamingEvent.speaker?.toLowerCase().includes("opposing")) {
-                      speakerName = "Challenge Review (AI Agent)";
+                      speakerName = "Challenge Review";
                       speakerColor = "text-amber-500 font-extrabold";
                       borderStyle = "border-l-amber-500";
                     }

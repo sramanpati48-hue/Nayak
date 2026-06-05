@@ -602,35 +602,197 @@ export default function JudicialReports() {
               )}
 
               {/* Nyaybandhu Verdict Details */}
-              {selectedItem.module === "nyaybandhu" && (
-                <div className="space-y-6">
-                  <div className="space-y-1">
-                    <span className="font-bold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">Session Overview</span>
-                    <div className="pl-2 space-y-1">
-                      <p><span className="font-semibold text-foreground">Title:</span> {selectedItem.title}</p>
-                      <p><span className="font-semibold text-foreground">Mode:</span> {selectedItem.report.mode === "practice" ? "Practice Arena" : "Real Case Review"}</p>
-                      <p><span className="font-semibold text-foreground">Strategy:</span> {selectedItem.report.opposing_counsel_strategy === "textualist" ? "Strictly by the book (literal)" : selectedItem.report.opposing_counsel_strategy === "pragmatist" ? "Practical/Purpose-oriented" : "Based on past cases (precedents)"} strategy</p>
+              {selectedItem.module === "nyaybandhu" && (() => {
+                if (selectedItem.report.mode === "real-life") {
+                  let parsedSummary: any = null;
+                  try {
+                    if (selectedItem.report.summary) {
+                      parsedSummary = JSON.parse(selectedItem.report.summary);
+                    }
+                  } catch (e) {
+                    console.warn("Failed to parse report summary JSON:", e);
+                  }
+
+                  if (parsedSummary) {
+                    return (
+                      <div className="space-y-6 text-left">
+                        <div className="space-y-1">
+                          <span className="font-bold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">Session Overview</span>
+                          <div className="pl-2 space-y-1">
+                            <p><span className="font-semibold text-foreground">Title:</span> {selectedItem.title}</p>
+                            <p><span className="font-semibold text-foreground">Dispute Category:</span> {parsedSummary.matter_type}</p>
+                            <p><span className="font-semibold text-foreground">Urgency Level:</span> {parsedSummary.urgency_level}</p>
+                          </div>
+                        </div>
+
+                        {/* 1. What Happened */}
+                        <div className="space-y-1">
+                          <span className="font-bold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">1. What Happened</span>
+                          <div className="pl-2 space-y-1 leading-relaxed">
+                            {parsedSummary.facts?.map((f: string, i: number) => (
+                              <p key={i}>{f}</p>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* 2. Case Strength */}
+                        <div className="space-y-1">
+                          <span className="font-bold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">2. Case Strength Overview & Leaning</span>
+                          <div className="p-3.5 bg-secondary/15 rounded border border-border/40 pl-2 leading-relaxed">
+                            <span className="font-bold text-accent block text-xs mb-1">{selectedItem.report.verdict?.split(".")[0]}</span>
+                            <p>{selectedItem.report.verdict?.split(".").slice(1).join(".")}</p>
+                          </div>
+                        </div>
+
+                        {/* 3. Guidance Review */}
+                        <div className="space-y-1">
+                          <span className="font-bold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">3. Guidance Review</span>
+                          <p className="pl-2 leading-relaxed">{parsedSummary.summary}</p>
+                        </div>
+
+                        {/* Timeline & People */}
+                        <div className="grid gap-4 md:grid-cols-2 text-left">
+                          <div className="space-y-1">
+                            <span className="font-bold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">Timeline of Events</span>
+                            <div className="pl-2 space-y-2 max-h-36 overflow-y-auto">
+                              {parsedSummary.timeline?.map((t: any, i: number) => (
+                                <div key={i} className="text-[11px] border-b border-border/20 pb-1 last:border-0">
+                                  <span className="font-semibold text-primary block">{t.date} ({t.certainty})</span>
+                                  <span>{t.event}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="space-y-1">
+                            <span className="font-bold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">People Involved</span>
+                            <div className="pl-2 space-y-2 max-h-36 overflow-y-auto">
+                              {parsedSummary.people_involved?.map((p: any, i: number) => (
+                                <div key={i} className="text-[11px] flex justify-between gap-2 border-b border-border/20 pb-1 last:border-0">
+                                  <span><span className="font-semibold">{p.name}</span> ({p.role})</span>
+                                  <span className="text-muted-foreground">{p.status}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Relief & Documents */}
+                        <div className="grid gap-4 md:grid-cols-2 text-left">
+                          <div className="space-y-1">
+                            <span className="font-bold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">Relief Sought</span>
+                            <ul className="pl-6 list-disc space-y-1">
+                              {parsedSummary.relief_sought?.map((r: string, i: number) => (
+                                <li key={i}>{r}</li>
+                              ))}
+                            </ul>
+                          </div>
+                          <div className="space-y-1">
+                            <span className="font-bold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">Documents Audit</span>
+                            <div className="pl-2 space-y-2 max-h-36 overflow-y-auto">
+                              {parsedSummary.documents_available?.map((d: any, i: number) => (
+                                <div key={i} className="text-[11px] border-b border-border/20 pb-1 last:border-0">
+                                  <span className="font-semibold block">{d.document} - <span className="text-accent">{d.status}</span></span>
+                                  <span className="text-muted-foreground/80">{d.relevance}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Risks & Legal Issues */}
+                        <div className="grid gap-4 md:grid-cols-2 text-left">
+                          <div className="space-y-1">
+                            <span className="font-bold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">Immediate Risks</span>
+                            <div className="pl-2 space-y-2 max-h-36 overflow-y-auto">
+                              {parsedSummary.immediate_risks?.map((r: any, i: number) => (
+                                <div key={i} className="text-[11px] border-b border-border/20 pb-1 last:border-0">
+                                  <span className="font-semibold block">{r.risk} - <span className="text-red-400">{r.level} risk</span></span>
+                                  <span className="text-muted-foreground/80">{r.reason}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="space-y-1">
+                            <span className="font-bold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">Preliminary Legal Issues</span>
+                            <div className="pl-2 space-y-2 max-h-36 overflow-y-auto">
+                              {parsedSummary.legal_issues_preliminary?.map((l: any, i: number) => (
+                                <div key={i} className="text-[11px] border-b border-border/20 pb-1 last:border-0">
+                                  <span className="font-semibold block">{l.issue} - <span className="text-primary">{l.confidence} confidence</span></span>
+                                  <span className="text-muted-foreground/80">{l.reason}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Next Steps & Help */}
+                        <div className="grid gap-4 md:grid-cols-2 text-left">
+                          <div className="space-y-1">
+                            <span className="font-bold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">4. Practical Next Steps</span>
+                            <ul className="pl-6 list-disc space-y-1">
+                              {parsedSummary.recommended_next_steps?.map((step: string, i: number) => (
+                                <li key={i}>{step}</li>
+                              ))}
+                            </ul>
+                          </div>
+                          <div className="space-y-1">
+                            <span className="font-bold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">5. Seek Help Channels</span>
+                            <ul className="pl-6 list-disc space-y-1">
+                              {parsedSummary.safety_flag && <li className="text-red-400">Call Police (112) or Women Helpline (1091) immediately.</li>}
+                              <li>District Legal Services Authority (DLSA) for free legal aid.</li>
+                              {parsedSummary.matter_type === "cyber abuse" && <li>Cyber Crime helpline (1930 / cybercrime.gov.in).</li>}
+                              {parsedSummary.matter_type === "consumer complaint" && <li>Consumer Helpline (1915).</li>}
+                            </ul>
+                          </div>
+                        </div>
+
+                        {/* Follow-up Questions */}
+                        {parsedSummary.follow_up_questions && parsedSummary.follow_up_questions.length > 0 && (
+                          <div className="p-3 border border-amber-500/20 bg-amber-500/5 rounded text-left">
+                            <span className="font-bold text-amber-500 block mb-1">Follow-up Questions (To fill gaps):</span>
+                            <ul className="pl-6 list-decimal space-y-1">
+                              {parsedSummary.follow_up_questions.map((q: string, i: number) => (
+                                <li key={i}>{q}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }
+                }
+
+                // Fallback for practice mode or unparsed summary
+                return (
+                  <div className="space-y-6 text-left">
+                    <div className="space-y-1">
+                      <span className="font-bold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">Session Overview</span>
+                      <div className="pl-2 space-y-1">
+                        <p><span className="font-semibold text-foreground">Title:</span> {selectedItem.title}</p>
+                        <p><span className="font-semibold text-foreground">Mode:</span> {selectedItem.report.mode === "practice" ? "Practice Arena" : "Real Case Review"}</p>
+                        <p><span className="font-semibold text-foreground">Strategy:</span> {selectedItem.report.opposing_counsel_strategy === "textualist" ? "Strictly by the book (literal)" : selectedItem.report.opposing_counsel_strategy === "pragmatist" ? "Practical/Purpose-oriented" : "Based on past cases (precedents)"} strategy</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <span className="font-bold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">
+                        {selectedItem.report.mode === "real-life" ? "Case Guidance Review" : "Final Summary Digest"}
+                      </span>
+                      <p className="pl-2 leading-relaxed">{selectedItem.report.summary}</p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <span className="font-bold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">
+                        {selectedItem.report.mode === "real-life" ? "Case Strength Overview & Leaning" : "Discussion Details & Leaning"}
+                      </span>
+                      <div className="p-3.5 bg-secondary/15 rounded border border-border/40 pl-2 leading-relaxed">
+                        <span className="font-bold text-accent block text-sm mb-1.5">{selectedItem.report.verdict?.split(".")[0]}</span>
+                        <p>{selectedItem.report.verdict?.split(".").slice(1).join(".")}</p>
+                      </div>
                     </div>
                   </div>
-
-                  <div className="space-y-1">
-                    <span className="font-bold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">
-                      {selectedItem.report.mode === "real-life" ? "Case Guidance Review" : "Final Summary Digest"}
-                    </span>
-                    <p className="pl-2 leading-relaxed">{selectedItem.report.summary}</p>
-                  </div>
-
-                  <div className="space-y-1">
-                    <span className="font-bold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">
-                      {selectedItem.report.mode === "real-life" ? "Case Strength Overview & Leaning" : "Discussion Details & Leaning"}
-                    </span>
-                    <div className="p-3.5 bg-secondary/15 rounded border border-border/40 pl-2 leading-relaxed">
-                      <span className="font-bold text-accent block text-sm mb-1.5">{selectedItem.report.verdict?.split(".")[0]}</span>
-                      <p>{selectedItem.report.verdict?.split(".").slice(1).join(".")}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
+                );
+              })()}
             </div>
 
             {/* Modal Footer */}
