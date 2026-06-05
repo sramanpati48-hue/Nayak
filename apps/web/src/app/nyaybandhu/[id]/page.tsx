@@ -12,8 +12,11 @@ import {
   CheckCircle2, 
   Activity, 
   AlertTriangle,
-  Loader2
+  Loader2,
+  Download
 } from "lucide-react";
+
+import { formatGuidanceReport, triggerDownload } from "@/lib/report-formatter";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -61,6 +64,13 @@ export default function SessionPage({ params }: PageProps) {
       scrollRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [activeEvents, streamingEvent]);
+
+  const handleExportGuidanceReport = () => {
+    if (!activeSession || !activeSession.summary) return;
+    const markdown = formatGuidanceReport(activeSession.title, activeSession.summary, activeSession.created_at.toString());
+    const filename = `guidance-report-${activeSession.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.md`;
+    triggerDownload(markdown, filename);
+  };
 
   // Connect to SSE stream
   const startStream = () => {
@@ -248,7 +258,7 @@ export default function SessionPage({ params }: PageProps) {
                       <span className="text-[10px] uppercase font-bold tracking-widest text-primary">Nayak Case Guidance Report</span>
                       <h2 className="text-lg font-bold text-foreground mt-0.5">Your Case Guidance Report</h2>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex items-center gap-2">
                       <span className="text-[10px] uppercase font-bold px-2 py-1 bg-primary/10 border border-primary/20 text-primary rounded">
                         Matter: {parsedSummary.matter_type}
                       </span>
@@ -261,6 +271,13 @@ export default function SessionPage({ params }: PageProps) {
                       }`}>
                         Urgency: {parsedSummary.urgency_level}
                       </span>
+                      <button
+                        onClick={handleExportGuidanceReport}
+                        className="text-[10px] uppercase font-bold px-2 py-1 bg-primary text-primary-foreground hover:bg-primary/90 rounded inline-flex items-center gap-1 transition-all"
+                      >
+                        <Download className="h-3 w-3" />
+                        <span>Export Guidance Report</span>
+                      </button>
                     </div>
                   </div>
 
@@ -499,9 +516,18 @@ export default function SessionPage({ params }: PageProps) {
                     <span className="text-[10px] uppercase font-bold tracking-widest text-primary">Nayak Case Guidance Report</span>
                     <h2 className="text-lg font-bold text-foreground mt-0.5">Your Case Guidance Report</h2>
                   </div>
-                  <span className="text-xs px-2.5 py-1 rounded bg-primary/20 border border-primary/30 text-primary font-bold">
-                    Summary Ready
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs px-2.5 py-1 rounded bg-primary/20 border border-primary/30 text-primary font-bold">
+                      Summary Ready
+                    </span>
+                    <button
+                      onClick={handleExportGuidanceReport}
+                      className="text-[10px] uppercase font-bold px-2 py-1 bg-primary text-primary-foreground hover:bg-primary/90 rounded inline-flex items-center gap-1 transition-all"
+                    >
+                      <Download className="h-3 w-3" />
+                      <span>Export Guidance Report</span>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Disclaimer */}

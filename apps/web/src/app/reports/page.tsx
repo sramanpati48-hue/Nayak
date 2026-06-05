@@ -21,6 +21,8 @@ import {
   FileArchive
 } from "lucide-react";
 
+import { formatGuidanceReport, triggerDownload } from "@/lib/report-formatter";
+
 export default function JudicialReports() {
   const [filter, setFilter] = useState<"all" | "nyaybandhu" | "vicharakbandhu">("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -193,35 +195,51 @@ export default function JudicialReports() {
         (rep.points_to_keep_in_mind?.map((p: any) => `- ${p.text}`).join("\n") || "No suggestion checklist items.") + "\n\n" +
         `## 7. Key Findings Summary\n` +
         `${rep.findings_summary}\n`;
+
+      const blob = new Blob([content], { type: "text/markdown;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `${item.title.replace(/\s+/g, "_")}_report.md`);
+      link.style.visibility = "hidden";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     } else {
       const rep = item.report;
-      content = `# NAYAK CASE SUMMARY AND ANALYSIS: ${item.title}\n` +
-        `Status: Finalized\n` +
-        `Date Compiled: ${new Date(item.created_at).toLocaleString()}\n\n` +
-        `--------------------------------------------------------------------------------\n` +
-        `DISCLAIMER: This case summary is compiled as a helpful case organizing summary.\n` +
-        `It does NOT represent legal advice, a court judgment, a verdict, or a lawyer's opinion.\n` +
-        `--------------------------------------------------------------------------------\n\n` +
-        `## 1. Session Overview\n` +
-        `Title: ${item.title}\n` +
-        `Description: ${rep.description || "No description provided."}\n` +
-        `Mode: ${rep.mode === "practice" ? "Practice Arena" : "Check Real Arguments"}\n` +
-        `Opponent Strategy: ${rep.opposing_counsel_strategy}\n\n` +
-        `## 2. Discussion Summary\n` +
-        `${rep.summary || "No verdict summary compiled."}\n\n` +
-        `## 3. Discussion Details & Leaning\n` +
-        `${rep.verdict || "No final details registered."}\n`;
-    }
+      if (rep.mode === "real-life") {
+        const markdown = formatGuidanceReport(item.title, rep.summary || "", item.created_at);
+        const filename = `guidance-report-${item.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.md`;
+        triggerDownload(markdown, filename);
+      } else {
+        content = `# NAYAK CASE SUMMARY AND ANALYSIS: ${item.title}\n` +
+          `Status: Finalized\n` +
+          `Date Compiled: ${new Date(item.created_at).toLocaleString()}\n\n` +
+          `--------------------------------------------------------------------------------\n` +
+          `DISCLAIMER: This case summary is compiled as a helpful case organizing summary.\n` +
+          `It does NOT represent legal advice, a court judgment, a verdict, or a lawyer's opinion.\n` +
+          `--------------------------------------------------------------------------------\n\n` +
+          `## 1. Session Overview\n` +
+          `Title: ${item.title}\n` +
+          `Description: ${rep.description || "No description provided."}\n` +
+          `Mode: ${rep.mode === "practice" ? "Practice Arena" : "Check Real Arguments"}\n` +
+          `Opponent Strategy: ${rep.opposing_counsel_strategy}\n\n` +
+          `## 2. Discussion Summary\n` +
+          `${rep.summary || "No verdict summary compiled."}\n\n` +
+          `## 3. Discussion Details & Leaning\n` +
+          `${rep.verdict || "No final details registered."}\n`;
 
-    const blob = new Blob([content], { type: "text/markdown;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `${item.title.replace(/\s+/g, "_")}_report.md`);
-    link.style.visibility = "hidden";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+        const blob = new Blob([content], { type: "text/markdown;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `${item.title.replace(/\s+/g, "_")}_report.md`);
+        link.style.visibility = "hidden";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    }
   };
 
   const isLoading = nyayLoading || vicharakLoading;
@@ -808,7 +826,9 @@ export default function JudicialReports() {
                 className="h-8 px-4 bg-primary text-primary-foreground hover:bg-primary/95 rounded font-semibold inline-flex items-center gap-1.5"
               >
                 <Download className="h-3.5 w-3.5" />
-                <span>Export Markdown</span>
+                <span>
+                  {selectedItem.report?.mode === "real-life" ? "Export Guidance Report" : "Export Markdown"}
+                </span>
               </button>
             </div>
           </div>
