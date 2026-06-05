@@ -1,3 +1,5 @@
+export const REPORT_VERSION = "1.0";
+
 export function formatGuidanceReport(title: string, summaryJsonStr: string, createdAtStr: string): string {
   let parsedSummary: any = null;
   try {
@@ -172,15 +174,74 @@ export function formatGuidanceReport(title: string, summaryJsonStr: string, crea
     content += `\n`;
   }
 
-  // 13. Safety Help Resources (only when safety_flag is true)
-  if (parsedSummary.safety_flag) {
-    content += `### 13. Safety Help Resources\n`;
-    content += `Please contact the following helplines immediately for assistance:\n`;
-    content += `* **National Emergency Response Support System (ERSS)**: Call **112** (All India emergency number for Police, Fire, Health)\n`;
-    content += `* **Women Helpline**: Call **1091** or **181** (For domestic violence or safety threats)\n`;
-    content += `* **Cyber Crime Helpline**: Call **1930** or visit **cybercrime.gov.in** (For online fraud, threats, or cyber abuse)\n`;
-    content += `* **Child Helpline**: Call **1098** (For child safety concerns)\n\n`;
+  // ── Trust & Review Section ──
+  content += `---\n\n`;
+  content += `## Trust & Review\n\n`;
+  content += `> This section is provided so you (and any lawyer or legal-aid volunteer\n`;
+  content += `> reviewing this report) can quickly see what information was captured,\n`;
+  content += `> what is still missing, and what requires professional verification.\n\n`;
+
+  // A. Facts we understood
+  content += `### A. Facts We Understood\n`;
+  if (parsedSummary.facts && parsedSummary.facts.length > 0) {
+    parsedSummary.facts.forEach((fact: string) => {
+      content += `* ${fact}\n`;
+    });
+  } else {
+    content += `_No facts were captured from the description provided._\n`;
   }
+  content += `\n`;
+
+  // B. Information still missing
+  content += `### B. Information Still Missing\n`;
+  if (parsedSummary.missing_information && parsedSummary.missing_information.length > 0) {
+    parsedSummary.missing_information.forEach((m: string) => {
+      content += `* ${m}\n`;
+    });
+  } else {
+    content += `_No obvious gaps were detected, but a lawyer should still verify completeness._\n`;
+  }
+  content += `\n`;
+
+  // C. What needs lawyer / legal-aid verification
+  // Derived from legal_issues_preliminary where confidence is not "high"
+  content += `### C. What Needs Lawyer / Legal-Aid Verification\n`;
+  const needsVerification: string[] = [];
+  if (parsedSummary.legal_issues_preliminary && parsedSummary.legal_issues_preliminary.length > 0) {
+    parsedSummary.legal_issues_preliminary.forEach((li: any) => {
+      if (li.confidence !== "high") {
+        needsVerification.push(`${li.issue} (confidence: ${li.confidence}) — ${li.reason || "Needs professional review."}`);
+      }
+    });
+  }
+  if (needsVerification.length > 0) {
+    needsVerification.forEach((v) => {
+      content += `* ${v}\n`;
+    });
+  } else {
+    content += `_All preliminary legal issues were assessed with high confidence, but a licensed advocate should still confirm._\n`;
+  }
+  content += `\n`;
+
+  // D. Safety warning (conditional)
+  if (parsedSummary.safety_flag) {
+    content += `### D. Safety Warning\n`;
+    content += `This case involves safety concerns. If you or someone you know is in\n`;
+    content += `immediate danger, please contact the helplines below before taking\n`;
+    content += `any other action.\n\n`;
+    content += `* **Police / Emergency**: 112 / 100\n`;
+    content += `* **Women Helpline**: 1091 / 181\n`;
+    content += `* **Cyber Crime Helpline**: 1930 / cybercrime.gov.in\n`;
+    content += `* **Child Helpline**: 1098\n\n`;
+  }
+
+  // E. Report metadata
+  content += `### Report Metadata\n`;
+  content += `* **Report Generated**: ${dateStr}\n`;
+  content += `* **Report Version**: ${REPORT_VERSION}\n`;
+  content += `* **Matter Type**: ${parsedSummary.matter_type || "Not classified"}\n`;
+  content += `* **Urgency Level**: ${parsedSummary.urgency_level || "Not assessed"}\n`;
+  content += `* **Safety Flag**: ${parsedSummary.safety_flag ? "Yes — immediate safety concerns detected" : "No"}\n\n`;
 
   return content;
 }

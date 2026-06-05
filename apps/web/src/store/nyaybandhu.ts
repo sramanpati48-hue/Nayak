@@ -73,8 +73,12 @@ export const useNyaybandhuStore = create<NyaybandhuState>((set, get) => ({
       set({ activeSession: data, loading: false });
       return data.id;
     } catch (err: any) {
-      set({ error: err.message, loading: false });
-      throw err;
+      const isNetworkError = err instanceof TypeError && /failed to fetch/i.test(err.message);
+      const friendlyMessage = isNetworkError
+        ? "Could not connect to the server. Please make sure the backend is running on the expected port and try again."
+        : err.message || "An unexpected error occurred while creating the session.";
+      set({ error: friendlyMessage, loading: false });
+      throw new Error(friendlyMessage);
     }
   },
 

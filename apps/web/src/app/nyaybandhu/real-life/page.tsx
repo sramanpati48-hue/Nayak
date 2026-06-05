@@ -62,8 +62,37 @@ export default function LiveCaseAnalysisIntake() {
         {/* Intake Form */}
         <form onSubmit={handleSubmit} className="space-y-5 bg-card border border-border p-6 rounded-lg shadow-sm">
           {error && (
-            <div className="p-3 bg-destructive/10 border border-destructive/20 rounded text-xs text-destructive-foreground">
-              {error}
+            <div className="space-y-3">
+              <div className="p-3 bg-destructive/10 border border-destructive/20 rounded text-xs text-destructive-foreground space-y-1">
+                <strong className="block">Something went wrong</strong>
+                <p>{error}</p>
+              </div>
+              {manualSafetyChecked && (
+                <div className="p-3.5 border border-red-500/30 bg-red-500/5 rounded text-xs space-y-2">
+                  <strong className="text-red-500 block">🚨 If you are in immediate danger, do not wait for this tool.</strong>
+                  <p className="text-muted-foreground leading-relaxed">
+                    Go to a safe place immediately and contact one of these helplines:
+                  </p>
+                  <div className="grid grid-cols-2 gap-2 text-[10px]">
+                    <div className="p-2 bg-secondary/35 rounded border border-border/40 text-center">
+                      <span className="text-muted-foreground block text-[9px]">Police / Emergency</span>
+                      <span className="font-extrabold text-foreground text-xs">112 / 100</span>
+                    </div>
+                    <div className="p-2 bg-secondary/35 rounded border border-border/40 text-center">
+                      <span className="text-muted-foreground block text-[9px]">Women Helpline</span>
+                      <span className="font-extrabold text-foreground text-xs">1091 / 181</span>
+                    </div>
+                    <div className="p-2 bg-secondary/35 rounded border border-border/40 text-center">
+                      <span className="text-muted-foreground block text-[9px]">Child Helpline</span>
+                      <span className="font-extrabold text-foreground text-xs">1098</span>
+                    </div>
+                    <div className="p-2 bg-secondary/35 rounded border border-border/40 text-center">
+                      <span className="text-muted-foreground block text-[9px]">Cybercrime</span>
+                      <span className="font-extrabold text-foreground text-xs">1930</span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

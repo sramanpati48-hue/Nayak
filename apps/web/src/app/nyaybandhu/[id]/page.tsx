@@ -13,10 +13,12 @@ import {
   Activity, 
   AlertTriangle,
   Loader2,
-  Download
+  Download,
+  Info,
+  ShieldCheck
 } from "lucide-react";
 
-import { formatGuidanceReport, triggerDownload } from "@/lib/report-formatter";
+import { formatGuidanceReport, triggerDownload, REPORT_VERSION } from "@/lib/report-formatter";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -496,11 +498,92 @@ export default function SessionPage({ params }: PageProps) {
                     </div>
                   )}
 
-                  {parsedSummary.safety_flag && (
-                    <div className="p-3.5 border border-red-500/20 bg-red-500/5 rounded text-xs text-muted-foreground leading-relaxed">
-                      <strong className="text-red-500">Urgent Safety Warning</strong>: This situation involves safety hazards. Please do not confront the other side alone. Prioritize your physical safety and contact the appropriate helplines immediately.
+                  {/* ── Trust & Review Section ── */}
+                  <div className="border-t border-border/60 pt-5 mt-4 space-y-4">
+                    <div className="flex items-center gap-2">
+                      <ShieldCheck className="h-4 w-4 text-primary" />
+                      <span className="font-bold text-foreground text-xs uppercase tracking-wider">Trust & Review</span>
                     </div>
-                  )}
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                      This section helps you (and any lawyer or legal-aid volunteer reviewing this report)
+                      see what was captured, what is still missing, and what needs professional verification.
+                    </p>
+
+                    {/* A. Facts We Understood */}
+                    <div className="space-y-1.5">
+                      <span className="font-semibold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">A. Facts We Understood</span>
+                      {parsedSummary.facts && parsedSummary.facts.length > 0 ? (
+                        <ul className="pl-6 list-disc text-xs text-muted-foreground space-y-1">
+                          {parsedSummary.facts.map((fact: string, idx: number) => (
+                            <li key={idx}>{fact}</li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="pl-2 text-xs text-muted-foreground italic">No facts were captured from the description provided.</p>
+                      )}
+                    </div>
+
+                    {/* B. Information Still Missing */}
+                    <div className="space-y-1.5">
+                      <span className="font-semibold text-foreground text-xs uppercase tracking-wider block border-l border-amber-500 pl-2">B. Information Still Missing</span>
+                      {parsedSummary.missing_information && parsedSummary.missing_information.length > 0 ? (
+                        <ul className="pl-6 list-disc text-xs text-amber-400/90 space-y-1">
+                          {parsedSummary.missing_information.map((m: string, idx: number) => (
+                            <li key={idx}>{m}</li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="pl-2 text-xs text-muted-foreground italic">No obvious gaps detected, but a lawyer should still verify completeness.</p>
+                      )}
+                    </div>
+
+                    {/* C. What Needs Lawyer / Legal-Aid Verification */}
+                    <div className="space-y-1.5">
+                      <span className="font-semibold text-foreground text-xs uppercase tracking-wider block border-l border-red-400 pl-2">C. Needs Lawyer / Legal-Aid Verification</span>
+                      {(() => {
+                        const items = (parsedSummary.legal_issues_preliminary || []).filter((li: any) => li.confidence !== "high");
+                        if (items.length > 0) {
+                          return (
+                            <ul className="pl-6 list-disc text-xs text-muted-foreground space-y-1.5">
+                              {items.map((li: any, idx: number) => (
+                                <li key={idx}>
+                                  <span className="font-semibold text-foreground">{li.issue}</span>
+                                  <span className="text-[10px] ml-1.5 px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-500 font-bold uppercase">{li.confidence} confidence</span>
+                                  {li.reason && <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{li.reason}</p>}
+                                </li>
+                              ))}
+                            </ul>
+                          );
+                        }
+                        return (
+                          <p className="pl-2 text-xs text-muted-foreground italic">All preliminary legal issues were assessed with high confidence, but a licensed advocate should still confirm.</p>
+                        );
+                      })()}
+                    </div>
+
+                    {/* D. Safety Warning (conditional) */}
+                    {parsedSummary.safety_flag && (
+                      <div className="p-3.5 border border-red-500/20 bg-red-500/5 rounded text-xs text-muted-foreground leading-relaxed space-y-1">
+                        <strong className="text-red-500 flex items-center gap-1.5">
+                          <AlertTriangle className="h-3.5 w-3.5" />
+                          Safety Warning
+                        </strong>
+                        <p>This case involves safety concerns. If you or someone you know is in immediate danger, contact the helplines listed in the sidebar before taking any other action.</p>
+                      </div>
+                    )}
+
+                    {/* Report Metadata */}
+                    <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-[10px] text-muted-foreground pt-2 border-t border-border/40">
+                      <span className="inline-flex items-center gap-1">
+                        <Info className="h-3 w-3" />
+                        Report Generated: {new Date(activeSession.created_at).toLocaleString()}
+                      </span>
+                      <span>Report Version: {REPORT_VERSION}</span>
+                      <span>Matter: {parsedSummary.matter_type || "Not classified"}</span>
+                      <span>Urgency: {parsedSummary.urgency_level || "Not assessed"}</span>
+                      <span>Safety Flag: {parsedSummary.safety_flag ? "Yes" : "No"}</span>
+                    </div>
+                  </div>
                 </div>
               );
             }
@@ -632,106 +715,195 @@ export default function SessionPage({ params }: PageProps) {
 
               {/* Log Messages */}
               <div className="p-6 space-y-6 max-h-[550px] overflow-y-auto min-h-[300px]">
-                {activeEvents.map((event) => {
-                  const isCard = event.event_type === "clarification_request";
+                {(() => {
                   const isRealLife = activeSession.mode === "real-life";
-                  
-                  let speakerName = event.speaker;
-                  let speakerColor = "text-accent";
-                  let borderStyle = "border-l-border/40";
-                  let containerBg = "";
 
-                  if (isRealLife) {
-                    if (event.role === "bench" || event.speaker.toLowerCase().includes("bench")) {
-                      speakerName = "Guide";
-                      speakerColor = "text-accent font-bold";
-                      borderStyle = "border-l-primary/50";
-                    } else if (event.role === "petitioner" || event.speaker.toLowerCase().includes("petitioner")) {
-                      speakerName = "Support Review";
-                      speakerColor = "text-emerald-500 font-extrabold";
-                      borderStyle = "border-l-emerald-500/40";
-                      containerBg = "bg-emerald-500/5 p-2 rounded-r";
-                    } else if (event.role === "respondent" || event.speaker.toLowerCase().includes("opposing")) {
-                      speakerName = "Challenge Review";
-                      speakerColor = "text-amber-500 font-extrabold";
-                      borderStyle = "border-l-amber-500/40";
-                      containerBg = "bg-amber-500/5 p-2 rounded-r";
-                    }
-                  } else {
-                    if (event.role === "bench") {
-                      speakerColor = "text-primary";
-                      borderStyle = "border-l-primary/40";
-                    }
-                    if (event.role === "respondent") {
-                      speakerColor = "text-red-400/80";
-                      borderStyle = "border-l-red-400/20";
-                    }
-                  }
-                  
-                  return (
-                    <div key={event.id} className="space-y-2">
-                      {/* Standard dialogue log */}
-                      <div className={`space-y-1 text-xs border-l pl-3 ${borderStyle} ${containerBg}`}>
-                        <div className="flex items-center justify-between">
-                          <span className={`font-semibold ${speakerColor}`}>
-                            {speakerName}
-                          </span>
-                          <span className="text-[9px] text-muted-foreground">
-                            {new Date(event.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </span>
-                        </div>
-                        <p className="text-muted-foreground leading-relaxed text-left">{event.text}</p>
-                      </div>
+                  // Derive phase boundaries: a new phase starts at each "argument" event
+                  // following the initial startup event (index 0).
+                  // Phase structure: [argument(s)] [clarification_request?]
+                  type Phase = { index: number; events: typeof activeEvents };
+                  const phases: Phase[] = [];
+                  let current: Phase | null = null as Phase | null;
 
-                      {/* Clarification card render */}
-                      {isCard && event.card_data && (
-                        <div className={`flex w-full mt-3 ${
-                          event.card_data.side === "left" ? "justify-start" : "justify-end"
-                        }`}>
-                          <div className={`w-full max-w-sm rounded border p-4 bg-secondary/25 shadow-sm text-xs space-y-3 ${
-                            event.card_data.side === "left" 
-                              ? "border-red-500/25 border-l-2 border-l-red-400" 
-                              : "border-primary/25 border-r-2 border-r-primary"
-                          }`}>
-                            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-primary">
-                              <HelpCircle className="h-3.5 w-3.5" />
-                              <span>Helpful Question ({event.card_data.side === "left" 
-                                ? (isRealLife ? "Challenge Review" : "Other Side") 
-                                : "Guide"})</span>
-                            </div>
-                            
-                            <p className="font-semibold text-foreground text-left">{event.card_data.question}</p>
-                            
-                            {/* Options selection */}
-                            <div className="space-y-2 pt-1.5">
-                              {event.card_data.options.map((opt, oIdx) => {
-                                const isAnswered = event.card_data?.answered;
-                                const isSelected = event.card_data?.selected_option === opt;
-                                
-                                return (
-                                  <button
-                                    key={oIdx}
-                                    disabled={isAnswered || streamActive}
-                                    onClick={() => answerCard(id, event.id, opt)}
-                                    className={`w-full p-2.5 rounded border text-left text-xs transition-all ${
-                                      isSelected
-                                        ? "border-primary bg-primary/10 text-accent font-semibold"
-                                        : isAnswered
-                                          ? "border-border/40 text-muted-foreground bg-secondary/5 cursor-not-allowed"
-                                          : "border-border/60 hover:bg-secondary/40 text-muted-foreground hover:text-foreground bg-card"
-                                    }`}
-                                  >
-                                    {opt}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
+                  activeEvents.forEach((event, idx) => {
+                    // Skip the opening startup event (bench/guide welcome)
+                    if (idx === 0) {
+                      current = { index: 1, events: [event] };
+                      return;
+                    }
+                    // A new phase starts when we see an argument event after a clarification_request
+                    // or when the previous event was a clarification_request that was answered
+                    const prevEvent = activeEvents[idx - 1];
+                    const isNewPhase =
+                      event.event_type === "argument" &&
+                      prevEvent &&
+                      (prevEvent.event_type === "clarification_request" || idx === 1);
+
+                    if (isNewPhase && idx > 1) {
+                      if (current) phases.push(current);
+                      current = { index: phases.length + 2, events: [event] };
+                    } else {
+                      if (current) {
+                        current.events.push(event);
+                      } else {
+                        current = { index: 1, events: [event] };
+                      }
+                    }
+                  });
+                  if (current && current.events.length > 0) phases.push(current);
+
+                  // Phase labels
+                  const phaseLabels = isRealLife
+                    ? ["Initial Review", "Opening Arguments", "Evidence & Timeline Review", "Final Assessment"]
+                    : ["Opening Statements", "Opening Arguments", "Cross-Examination", "Closing Arguments"];
+
+                  return phases.map((phase, pIdx) => (
+                    <div key={pIdx} className="space-y-4">
+                      {/* Phase divider (skip for the very first phase) */}
+                      {pIdx > 0 && (
+                        <div className="flex items-center gap-3 py-2">
+                          <div className="flex-1 h-px bg-border/60" />
+                          <span className="text-[9px] uppercase font-bold tracking-widest text-primary/70 bg-card px-2">
+                            {phaseLabels[pIdx] || `Phase ${pIdx + 1}`}
+                          </span>
+                          <div className="flex-1 h-px bg-border/60" />
                         </div>
                       )}
+
+                      {phase.events.map((event) => {
+                        const isCard = event.event_type === "clarification_request";
+
+                        let speakerName = event.speaker;
+                        let speakerColor = "text-accent";
+                        let borderStyle = "border-l-border/40";
+                        let containerBg = "";
+
+                        if (isRealLife) {
+                          if (event.role === "bench" || event.speaker.toLowerCase().includes("bench")) {
+                            speakerName = "Guide";
+                            speakerColor = "text-accent font-bold";
+                            borderStyle = "border-l-primary/50";
+                          } else if (event.role === "petitioner" || event.speaker.toLowerCase().includes("petitioner")) {
+                            speakerName = "Support Review";
+                            speakerColor = "text-emerald-500 font-extrabold";
+                            borderStyle = "border-l-emerald-500/40";
+                            containerBg = "bg-emerald-500/5 p-2 rounded-r";
+                          } else if (event.role === "respondent" || event.speaker.toLowerCase().includes("opposing")) {
+                            speakerName = "Challenge Review";
+                            speakerColor = "text-amber-500 font-extrabold";
+                            borderStyle = "border-l-amber-500/40";
+                            containerBg = "bg-amber-500/5 p-2 rounded-r";
+                          }
+                        } else {
+                          if (event.role === "bench") {
+                            speakerColor = "text-primary";
+                            borderStyle = "border-l-primary/40";
+                          }
+                          if (event.role === "respondent") {
+                            speakerColor = "text-red-400/80";
+                            borderStyle = "border-l-red-400/20";
+                          }
+                        }
+
+                        return (
+                          <div key={event.id} className="space-y-2">
+                            {/* Argument row */}
+                            {!isCard && (
+                              <div className={`space-y-1 text-xs border-l-2 pl-3 ${borderStyle} ${containerBg}`}>
+                                <div className="flex items-center justify-between">
+                                  <span className={`font-semibold ${speakerColor}`}>
+                                    {speakerName}
+                                  </span>
+                                  <span className="text-[9px] text-muted-foreground">
+                                    {new Date(event.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  </span>
+                                </div>
+                                <p className="text-muted-foreground leading-relaxed text-left">{event.text}</p>
+                              </div>
+                            )}
+
+                            {/* Cross-question / Clarification card — rendered as a distinct card row */}
+                            {isCard && event.card_data && (
+                              <div className="my-2">
+                                {/* Card header label */}
+                                <div className="flex items-center gap-2 mb-2">
+                                  <div className={`h-px flex-1 ${event.card_data.side === "left" ? "bg-amber-500/30" : "bg-primary/30"}`} />
+                                  <span className={`text-[9px] uppercase font-bold tracking-widest px-2 py-0.5 rounded border ${
+                                    event.card_data.side === "left"
+                                      ? "bg-amber-500/10 border-amber-500/20 text-amber-500"
+                                      : "bg-primary/10 border-primary/20 text-primary"
+                                  }`}>
+                                    {isRealLife
+                                      ? (event.card_data.side === "left" ? "Cross-Question — Challenge Review" : "Cross-Question — Guide")
+                                      : (event.card_data.side === "left" ? "Cross-Question — Opposing Counsel" : "Cross-Question — Bench")
+                                    }
+                                  </span>
+                                  <div className={`h-px flex-1 ${event.card_data.side === "left" ? "bg-amber-500/30" : "bg-primary/30"}`} />
+                                </div>
+
+                                {/* Card body */}
+                                <div className={`flex w-full ${
+                                  event.card_data.side === "left" ? "justify-start" : "justify-end"
+                                }`}>
+                                  <div className={`w-full max-w-md rounded-lg border p-4 bg-secondary/25 shadow-sm text-xs space-y-3 ${
+                                    event.card_data.side === "left"
+                                      ? "border-amber-500/25 border-l-2 border-l-amber-400"
+                                      : "border-primary/25 border-r-2 border-r-primary"
+                                  }`}>
+                                    <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-primary">
+                                      <HelpCircle className="h-3.5 w-3.5" />
+                                      <span>{isRealLife ? "Your input needed" : "Counsel must respond"}</span>
+                                    </div>
+
+                                    <p className="font-semibold text-foreground text-left">{event.card_data.question}</p>
+
+                                    {/* Context text from the event */}
+                                    {event.text && event.text !== event.card_data.question && (
+                                      <p className="text-[11px] text-muted-foreground leading-relaxed italic border-l-2 border-border/40 pl-2">{event.text}</p>
+                                    )}
+
+                                    {/* Options */}
+                                    <div className="space-y-2 pt-1.5">
+                                      {event.card_data.options.map((opt, oIdx) => {
+                                        const isAnswered = event.card_data?.answered;
+                                        const isSelected = event.card_data?.selected_option === opt;
+
+                                        return (
+                                          <button
+                                            key={oIdx}
+                                            disabled={isAnswered || streamActive}
+                                            onClick={() => answerCard(id, event.id, opt)}
+                                            className={`w-full p-2.5 rounded border text-left text-xs transition-all ${
+                                              isSelected
+                                                ? "border-primary bg-primary/10 text-accent font-semibold"
+                                                : isAnswered
+                                                  ? "border-border/40 text-muted-foreground bg-secondary/5 cursor-not-allowed"
+                                                  : "border-border/60 hover:bg-secondary/40 text-muted-foreground hover:text-foreground bg-card"
+                                            }`}
+                                          >
+                                            {opt}
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+
+                                    {/* Answered badge */}
+                                    {event.card_data.answered && (
+                                      <div className="flex items-center gap-1 text-[9px] text-emerald-500 font-bold uppercase tracking-wider pt-1">
+                                        <CheckCircle2 className="h-3 w-3" />
+                                        <span>Answered</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
-                  );
-                })}
+                  ));
+                })()}
 
                 {/* SSE active stream turn rendering */}
                 {streamingEvent && (() => {

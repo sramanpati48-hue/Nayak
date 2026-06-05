@@ -1,0 +1,6 @@
+{
+  "title": "Landlord deposit dispute test",
+  "description": "My landlord has refused to return my security deposit of Rs 40,000 after I vacated the flat. I lived there for 2 years and left the flat in clean condition. He claims damages but won't show me any proof.",
+  "mode": "real-life",
+  "opposing_counsel_strategy": "precedent"
+}

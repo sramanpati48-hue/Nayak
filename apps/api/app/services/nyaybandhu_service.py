@@ -427,6 +427,11 @@ class NyaybandhuService:
         result = await db.execute(select(TranscriptEvent).where(TranscriptEvent.id == card_id))
         card_event = result.scalar_one_or_none()
         
+        # Determine internal card ID from card_data JSON for score assignment
+        card_internal_id = "card-1"
+        if card_event and card_event.card_data:
+            card_internal_id = card_event.card_data.get("id", "card-1")
+        
         # Create response text
         response_text = f"We clarify that: {selected_option}"
         
@@ -438,7 +443,7 @@ class NyaybandhuService:
             role="petitioner",
             text=response_text,
             event_type="argument",
-            score_delta={"petitioner": 88, "respondent": 75} if card_id == "card-1" else {"petitioner": 92, "respondent": 78},
+            score_delta={"petitioner": 88, "respondent": 75} if card_internal_id == "card-1" or card_id == "card-1" else {"petitioner": 92, "respondent": 78},
             created_at=datetime.utcnow()
         )
         db.add(response_event)
@@ -570,7 +575,7 @@ class NyaybandhuService:
                 yield make_sse("clarification_card", card_data)
                 
                 evt_3 = TranscriptEvent(
-                    id="card-1",
+                    id=str(uuid.uuid4()),
                     session_id=session_id,
                     speaker="Challenge Review",
                     role="respondent",
@@ -610,7 +615,7 @@ class NyaybandhuService:
                 yield make_sse("clarification_card", card_data)
                 
                 evt_4 = TranscriptEvent(
-                    id="card-2",
+                    id=str(uuid.uuid4()),
                     session_id=session_id,
                     speaker="Guide",
                     role="bench",
@@ -750,7 +755,7 @@ class NyaybandhuService:
                 yield make_sse("clarification_card", card_data)
                 
                 evt_3 = TranscriptEvent(
-                    id="card-1",
+                    id=str(uuid.uuid4()),
                     session_id=session_id,
                     speaker="Opposing Counsel (AI Agent)",
                     role="respondent",
@@ -787,7 +792,7 @@ class NyaybandhuService:
                 yield make_sse("clarification_card", card_data)
                 
                 evt_4 = TranscriptEvent(
-                    id="card-2",
+                    id=str(uuid.uuid4()),
                     session_id=session_id,
                     speaker="Bench / Presiding Judge",
                     role="bench",
