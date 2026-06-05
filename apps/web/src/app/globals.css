@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Serious Judicial Palette - Software-like and Restrained */
+    --background: 240 10% 4%; /* Dark charcoal background */
+    --foreground: 40 25% 90%; /* Warm ivory primary text */
+
+    --card: 240 6% 8%; /* Deep charcoal card surfaces */
+    --card-foreground: 40 25% 90%;
+
+    --popover: 240 6% 8%;
+    --popover-foreground: 40 25% 90%;
+
+    --primary: 38 30% 55%; /* Muted bronze accent */
+    --primary-foreground: 240 10% 4%;
+
+    --secondary: 222 25% 8%; /* Midnight navy surfaces */
+    --secondary-foreground: 40 25% 90%;
+
+    --muted: 240 5% 15%; /* Muted dark gray */
+    --muted-foreground: 240 5% 65%; /* Soft gray for captions */
+
+    --accent: 43 40% 65%; /* Soft gold highlights */
+    --accent-foreground: 240 10% 4%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 40 25% 90%;
+
+    --border: 38 15% 15%; /* Muted bronze-tinted dark border */
+    --input: 38 15% 15%;
+    --ring: 38 30% 55%;
+
+    --radius: 0.5rem;
+  }
+
+  /* Force dark mode variables across the workspace for consistent styling */
+  .light {
+    --background: 240 10% 4%;
+    --foreground: 40 25% 90%;
+    --card: 240 6% 8%;
+    --card-foreground: 40 25% 90%;
+    --primary: 38 30% 55%;
+    --secondary: 222 25% 8%;
+    --muted: 240 5% 15%;
+    --muted-foreground: 240 5% 65%;
+    --accent: 43 40% 65%;
+    --border: 38 15% 15%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased min-h-screen selection:bg-primary/20 selection:text-accent;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+/* Scrollbar Customization for clean software interfaces */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary));
+}
