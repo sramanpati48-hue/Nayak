@@ -27,18 +27,26 @@ export function getStoredSessionContext(): SessionContext {
 
   const storedRole = window.localStorage.getItem(ROLE_STORAGE_KEY);
   const role = isRole(storedRole) ? storedRole : "normal_user";
-
-  let userId = window.localStorage.getItem(USER_STORAGE_KEY);
-  if (!userId) {
-    userId = createUserId();
-    window.localStorage.setItem(USER_STORAGE_KEY, userId);
-  }
-
-  if (!storedRole) {
-    window.localStorage.setItem(ROLE_STORAGE_KEY, role);
-  }
+  const userId = window.localStorage.getItem(USER_STORAGE_KEY) || "anonymous";
 
   return { role, userId };
+}
+
+export function setStoredSessionFromAuth(context: SessionContext | null) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  if (!context) {
+    window.localStorage.removeItem(ROLE_STORAGE_KEY);
+    window.localStorage.removeItem(USER_STORAGE_KEY);
+    window.dispatchEvent(new Event(SESSION_EVENT));
+    return;
+  }
+
+  window.localStorage.setItem(ROLE_STORAGE_KEY, context.role);
+  window.localStorage.setItem(USER_STORAGE_KEY, context.userId);
+  window.dispatchEvent(new Event(SESSION_EVENT));
 }
 
 export function setStoredSessionRole(role: Role) {

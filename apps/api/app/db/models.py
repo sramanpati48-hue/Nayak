@@ -105,6 +105,39 @@ class BenchNoteEntry(Base):
     )
 
 
+class User(Base):
+    """
+    Application user mapped to Clerk identity with Nayak RBAC role.
+    """
+    __tablename__ = "users"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True, index=True)
+    email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    role: Mapped[str] = mapped_column(String(50), default="normal_user")
+    portal: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime, default=datetime.datetime.utcnow
+    )
+
+
+class JudgeEvidence(Base):
+    """
+    Evidence or proof file uploaded in judge fast-track workflow.
+    """
+    __tablename__ = "judge_evidence"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, index=True)
+    session_id: Mapped[str] = mapped_column(String(36), index=True)
+    filename: Mapped[str] = mapped_column(String(255))
+    content_type: Mapped[str] = mapped_column(String(100))
+    file_size: Mapped[int] = mapped_column(Integer)
+    storage_path: Mapped[str] = mapped_column(String(500))
+    uploaded_by: Mapped[str] = mapped_column(String(64), index=True)
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime, default=datetime.datetime.utcnow
+    )
+
+
 class JudicialReport(Base):
     """
     SQLAlchemy Model representing generated legal and judicial reports.

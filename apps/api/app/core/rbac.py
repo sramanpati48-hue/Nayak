@@ -4,6 +4,13 @@ from dataclasses import dataclass
 from typing import Any, Dict, Iterable, Literal, Optional, Set
 
 from fastapi import Depends, HTTPException, Request, status
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.auth import extract_bearer_token, verify_clerk_token
+from app.core.config import settings
+from app.db.models import User
+from app.db.session import get_db
 
 Role = Literal["normal_user", "law_intern", "lawyer", "judge"]
 Permission = Literal[
@@ -47,10 +54,33 @@ def _coerce_role(value: Optional[str]) -> Role:
     return "normal_user"
 
 
-def get_request_actor(request: Request) -> RequestActor:
-    role = _coerce_role(request.headers.get("X-User-Role") or request.query_params.get("role"))
-    user_id = request.headers.get("X-User-Id") or request.query_params.get("user_id") or "anonymous"
-    return RequestActor(user_id=user_id, role=role)
+async def get_request_actor(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+) -> RequestActor:
+    token = extract_bearer_token(request)
+
+    if token and settings.CLERK_JWKS_URL:
+        try:
+            payload = verify_clerk_token(token)
+            clerk_id = payload.get("sub")
+            if clerk_id:
+                result = await db.execute(select(User).where(User.id == clerk_id))
+                user = result.scalar_one_or_none()
+                if user:
+                    return RequestActor(user_id=user.id, role=user.role)  # type: ignore[arg-type]
+        except HTTPException:
+            pass
+
+    if settings.AUTH_ALLOW_HEADER_FALLBACK:
+        role = _coerce_role(request.headers.get("X-User-Role") or request.query_params.get("role"))
+        user_id = request.headers.get("X-User-Id") or request.query_params.get("user_id") or "anonymous"
+        return RequestActor(user_id=user_id, role=role)
+
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Authentication required.",
+    )
 
 
 def has_permission(role: Role, permission: Permission) -> bool:

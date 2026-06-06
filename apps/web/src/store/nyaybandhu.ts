@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { buildSessionRequestHeaders } from "@/lib/request-context";
+import { apiFetch } from "@/lib/api-client";
 import { getStoredSessionContext } from "@/lib/session-context";
 
 export interface NyaybandhuSession {
@@ -86,11 +86,10 @@ export const useNyaybandhuStore = create<NyaybandhuState>((set, get) => ({
   createSession: async (title, description, mode, opposing_counsel_strategy) => {
     set({ loading: true, error: null });
     try {
-      const res = await fetch(`${API_BASE_URL}/nyaybandhu/sessions`, {
+      const res = await apiFetch(`${API_BASE_URL}/nyaybandhu/sessions`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...buildSessionRequestHeaders(),
         },
         body: JSON.stringify(buildSessionConfig(title, description, mode, opposing_counsel_strategy)),
       });
@@ -111,9 +110,8 @@ export const useNyaybandhuStore = create<NyaybandhuState>((set, get) => ({
   fetchSessionDetails: async (id) => {
     set({ loading: true, error: null });
     try {
-      const res = await fetch(`${API_BASE_URL}/nyaybandhu/sessions/${id}`, {
+      const res = await apiFetch(`${API_BASE_URL}/nyaybandhu/sessions/${id}`, {
         cache: "no-store",
-        headers: buildSessionRequestHeaders(),
       });
       if (!res.ok) throw new Error("Session details not found");
       const data = await res.json();
@@ -129,11 +127,10 @@ export const useNyaybandhuStore = create<NyaybandhuState>((set, get) => ({
 
   answerCard: async (sessionId, cardId, selectedOption) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/nyaybandhu/sessions/${sessionId}/answer`, {
+      const res = await apiFetch(`${API_BASE_URL}/nyaybandhu/sessions/${sessionId}/answer`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...buildSessionRequestHeaders(),
         },
         body: JSON.stringify({ card_id: cardId, selected_option: selectedOption }),
       });
@@ -148,9 +145,8 @@ export const useNyaybandhuStore = create<NyaybandhuState>((set, get) => ({
 
   continueSession: async (sessionId) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/nyaybandhu/sessions/${sessionId}/continue`, {
+      const res = await apiFetch(`${API_BASE_URL}/nyaybandhu/sessions/${sessionId}/continue`, {
         method: "POST",
-        headers: buildSessionRequestHeaders(),
       });
       if (!res.ok) throw new Error("Failed to trigger session continuation");
       // Re-fetch details to sync the state
@@ -163,9 +159,8 @@ export const useNyaybandhuStore = create<NyaybandhuState>((set, get) => ({
   finalizeSession: async (sessionId) => {
     set({ loading: true, error: null });
     try {
-      const res = await fetch(`${API_BASE_URL}/nyaybandhu/sessions/${sessionId}/finalize`, {
+      const res = await apiFetch(`${API_BASE_URL}/nyaybandhu/sessions/${sessionId}/finalize`, {
         method: "POST",
-        headers: buildSessionRequestHeaders(),
       });
       if (!res.ok) throw new Error("Failed to compile final review");
       const data = await res.json();
@@ -177,11 +172,10 @@ export const useNyaybandhuStore = create<NyaybandhuState>((set, get) => ({
 
   addInternNote: async (sessionId, note) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/nyaybandhu/sessions/${sessionId}/intern-notes`, {
+      const res = await apiFetch(`${API_BASE_URL}/nyaybandhu/sessions/${sessionId}/intern-notes`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...buildSessionRequestHeaders(),
         },
         body: JSON.stringify({ note }),
       });
@@ -196,11 +190,10 @@ export const useNyaybandhuStore = create<NyaybandhuState>((set, get) => ({
   markLawyerReviewComplete: async (sessionId, summary) => {
     set({ loading: true, error: null });
     try {
-      const res = await fetch(`${API_BASE_URL}/nyaybandhu/sessions/${sessionId}/lawyer-review-complete`, {
+      const res = await apiFetch(`${API_BASE_URL}/nyaybandhu/sessions/${sessionId}/lawyer-review-complete`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...buildSessionRequestHeaders(),
         },
         body: JSON.stringify({ summary }),
       });
@@ -216,9 +209,8 @@ export const useNyaybandhuStore = create<NyaybandhuState>((set, get) => ({
   fetchHistory: async () => {
     set({ loading: true, error: null });
     try {
-      const res = await fetch(`${API_BASE_URL}/nyaybandhu/history`, {
+      const res = await apiFetch(`${API_BASE_URL}/nyaybandhu/history`, {
         cache: "no-store",
-        headers: buildSessionRequestHeaders(),
       });
       if (!res.ok) throw new Error("Failed to fetch historical session logs");
       const data = await res.json();

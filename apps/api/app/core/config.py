@@ -31,6 +31,12 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str = ""
     ANTHROPIC_API_KEY: str = ""
     GEMINI_API_KEY: str = ""
+
+    # Clerk authentication
+    CLERK_ISSUER: str = ""
+    CLERK_JWKS_URL: str = ""
+    CLERK_SECRET_KEY: str = ""
+    AUTH_ALLOW_HEADER_FALLBACK: bool = True
     
     model_config = SettingsConfigDict(
         # Read from root or local api directory

@@ -31,7 +31,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { t, getRoleLabel, getRoleSummary } = useTranslation();
 
   const navItems = [
-    { name: t("nav.home"), href: "/", icon: LayoutDashboard },
+    { name: t("nav.home"), href: "/portal", icon: LayoutDashboard },
     { 
       name: t("nav.nyaybandhu"), 
       href: "/nyaybandhu", 
@@ -48,7 +48,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   ];
 
   const isActive = (href: string) => {
-    if (href === "/") return pathname === "/";
+    if (href === "/portal") return pathname === "/portal";
     return pathname.startsWith(href);
   };
 
@@ -75,7 +75,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       <aside className="hidden md:flex flex-col w-64 border-r border-border bg-card/95 text-card-foreground backdrop-blur-sm">
         {/* Brand Header */}
         <div className="p-6 border-b border-border flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5 font-semibold text-lg tracking-wide text-accent">
+          <Link href="/portal" className="flex items-center gap-2.5 font-semibold text-lg tracking-wide text-accent">
             <Scale className="h-5.5 w-5.5 text-primary" />
             <span>{t("layout.brand")}</span>
           </Link>

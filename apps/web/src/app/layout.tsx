@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Noto_Sans_Devanagari, Poppins } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
-import { LanguageProvider } from "@/lib/language-context";
+import { Providers } from "@/components/providers";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -29,16 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={`${poppins.variable} ${notoSansDevanagari.variable}`}>
       <body className={`${poppins.className} font-sans min-h-screen bg-background text-foreground antialiased`}>
-        <LanguageProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            {children}
-          </ThemeProvider>
-        </LanguageProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

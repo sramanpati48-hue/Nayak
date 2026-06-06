@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { apiFetch } from "@/lib/api-client";
 
 export interface VicharakReview {
   id: string;
@@ -105,7 +106,7 @@ export const useVicharakBandhuStore = create<VicharakBandhuState>((set, get) => 
   createReview: async (title) => {
     set({ loading: true, error: null });
     try {
-      const res = await fetch(`${API_BASE_URL}/vicharakbandhu/reviews`, {
+      const res = await apiFetch(`${API_BASE_URL}/vicharakbandhu/reviews`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title }),
@@ -123,7 +124,7 @@ export const useVicharakBandhuStore = create<VicharakBandhuState>((set, get) => 
   fetchReviewDetails: async (id) => {
     set({ loading: true, error: null });
     try {
-      const res = await fetch(`${API_BASE_URL}/vicharakbandhu/reviews/${id}`, { cache: "no-store" });
+      const res = await apiFetch(`${API_BASE_URL}/vicharakbandhu/reviews/${id}`, { cache: "no-store" });
       if (!res.ok) throw new Error("Case review details not found");
       const data = await res.json();
       set({
@@ -140,7 +141,7 @@ export const useVicharakBandhuStore = create<VicharakBandhuState>((set, get) => 
   ingestText: async (id, text) => {
     set({ loading: true, error: null });
     try {
-      const res = await fetch(`${API_BASE_URL}/vicharakbandhu/reviews/${id}/text`, {
+      const res = await apiFetch(`${API_BASE_URL}/vicharakbandhu/reviews/${id}/text`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text }),
@@ -160,7 +161,7 @@ export const useVicharakBandhuStore = create<VicharakBandhuState>((set, get) => 
       formData.append("file", file);
 
       const endpoint = type === "voice" ? "voice" : "documents";
-      const res = await fetch(`${API_BASE_URL}/vicharakbandhu/reviews/${id}/${endpoint}`, {
+      const res = await apiFetch(`${API_BASE_URL}/vicharakbandhu/reviews/${id}/${endpoint}`, {
         method: "POST",
         body: formData, // Browser sets Content-Type boundary automatically
       });
@@ -175,7 +176,7 @@ export const useVicharakBandhuStore = create<VicharakBandhuState>((set, get) => 
 
   createEntry: async (id, entryData) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/vicharakbandhu/reviews/${id}/entries`, {
+      const res = await apiFetch(`${API_BASE_URL}/vicharakbandhu/reviews/${id}/entries`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(entryData),
@@ -191,7 +192,7 @@ export const useVicharakBandhuStore = create<VicharakBandhuState>((set, get) => 
 
   updateEntry: async (entryId, entryData) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/vicharakbandhu/entries/${entryId}`, {
+      const res = await apiFetch(`${API_BASE_URL}/vicharakbandhu/entries/${entryId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(entryData),
@@ -209,7 +210,7 @@ export const useVicharakBandhuStore = create<VicharakBandhuState>((set, get) => 
 
   deleteEntry: async (entryId) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/vicharakbandhu/entries/${entryId}`, {
+      const res = await apiFetch(`${API_BASE_URL}/vicharakbandhu/entries/${entryId}`, {
         method: "DELETE",
       });
       if (!res.ok) throw new Error("Failed to delete Bench Note");
@@ -226,7 +227,7 @@ export const useVicharakBandhuStore = create<VicharakBandhuState>((set, get) => 
   compileReport: async (id) => {
     set({ loading: true, error: null });
     try {
-      const res = await fetch(`${API_BASE_URL}/vicharakbandhu/reviews/${id}/report`, { cache: "no-store" });
+      const res = await apiFetch(`${API_BASE_URL}/vicharakbandhu/reviews/${id}/report`, { cache: "no-store" });
       if (!res.ok) throw new Error("Failed to compile judicial report");
       const data = await res.json();
       set({ activeReview: data, loading: false });
@@ -238,7 +239,7 @@ export const useVicharakBandhuStore = create<VicharakBandhuState>((set, get) => 
   fetchHistory: async () => {
     set({ loading: true, error: null });
     try {
-      const res = await fetch(`${API_BASE_URL}/vicharakbandhu/history`, { cache: "no-store" });
+      const res = await apiFetch(`${API_BASE_URL}/vicharakbandhu/history`, { cache: "no-store" });
       if (!res.ok) throw new Error("Failed to load historical review files");
       const data = await res.json();
       set({ reviews: data, loading: false });

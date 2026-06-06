@@ -1,15 +1,16 @@
 "use client";
 
-import { getStoredSessionContext, getStoredSessionHeaders, getStoredSessionQueryParams } from "./session-context";
+import { buildApiHeaders, buildApiQueryParams } from "./api-client";
+import { getStoredSessionContext } from "./session-context";
 
 export function getSessionRequestContext() {
   return getStoredSessionContext();
 }
 
-export function buildSessionRequestHeaders(extraHeaders?: HeadersInit): HeadersInit {
-  return getStoredSessionHeaders(extraHeaders);
+export async function buildSessionRequestHeaders(extraHeaders?: HeadersInit): Promise<HeadersInit> {
+  return buildApiHeaders(extraHeaders);
 }
 
-export function buildSessionRequestQueryParams(extraParams?: Record<string, string | undefined>) {
-  return getStoredSessionQueryParams(extraParams);
+export async function buildSessionRequestQueryParams(extraParams?: Record<string, string | undefined>) {
+  return buildApiQueryParams(extraParams);
 }

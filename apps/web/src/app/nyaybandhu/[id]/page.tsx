@@ -101,7 +101,7 @@ export default function SessionPage({ params }: PageProps) {
   };
 
   // Connect to SSE stream
-  const startStream = () => {
+  const startStream = async () => {
     if (eventSourceRef.current) {
       eventSourceRef.current.close();
     }
@@ -110,7 +110,7 @@ export default function SessionPage({ params }: PageProps) {
     setStreamingEvent(null);
     
     const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
-    const query = buildSessionRequestQueryParams().toString();
+    const query = (await buildSessionRequestQueryParams()).toString();
     const es = new EventSource(`${API_BASE_URL}/nyaybandhu/sessions/${id}/stream?${query}`);
     eventSourceRef.current = es;
 
