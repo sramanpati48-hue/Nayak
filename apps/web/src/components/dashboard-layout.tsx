@@ -48,9 +48,26 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground selection:bg-primary/20 selection:text-accent">
+    <div className="flex min-h-screen bg-background text-foreground selection:bg-primary/20 selection:text-accent relative">
+      {/* Background video */}
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover"
+        style={{ zIndex: 0 }}
+      >
+        <source
+          src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260508_215831_c6a8989c-d716-4d8d-8745-e972a2eec711.mp4"
+          type="video/mp4"
+        />
+      </video>
+
+      {/* Content wrapper with relative positioning */}
+      <div className="relative z-10 flex w-full min-h-screen">
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex flex-col w-64 border-r border-border bg-card text-card-foreground">
+      <aside className="hidden md:flex flex-col w-64 border-r border-border bg-card/95 text-card-foreground backdrop-blur-sm">
         {/* Brand Header */}
         <div className="p-6 border-b border-border flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5 font-semibold text-lg tracking-wide text-accent">
@@ -128,7 +145,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Persistent Top Header */}
-        <header className="flex items-center justify-between h-14 px-6 border-b border-border bg-card">
+        <header className="flex items-center justify-between h-14 px-6 border-b border-border bg-card/95 backdrop-blur-sm">
           <div className="flex items-center gap-3">
             {/* Mobile Nav toggle button */}
             <button
@@ -162,7 +179,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="md:hidden border-b border-border bg-card p-4 flex flex-col gap-2 shadow-lg z-50 absolute w-full top-14 left-0"
+              className="md:hidden border-b border-border bg-card/95 backdrop-blur-sm p-4 flex flex-col gap-2 shadow-lg z-50 absolute w-full top-14 left-0"
             >
               {navItems.map((item) => {
                 const active = isActive(item.href);
@@ -210,7 +227,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         </AnimatePresence>
 
         {/* Main Panel Viewport */}
-        <main className="flex-1 p-6 md:p-8 overflow-y-auto bg-background/50">
+        <main className="flex-1 p-6 md:p-8 overflow-y-auto bg-background/40 backdrop-blur-sm">
           <motion.div
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
@@ -220,6 +237,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             {children}
           </motion.div>
         </main>
+      </div>
       </div>
     </div>
   );

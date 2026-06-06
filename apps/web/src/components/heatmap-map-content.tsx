@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { MapContainer, TileLayer, GeoJSON } from "react-leaflet";
 import { useHeatmapStore } from "@/store/heatmap";
 import { useRealtimeCases } from "@/hooks/useRealtimeCases";
@@ -46,9 +46,12 @@ export default function HeatmapMapContent() {
   const [geoJsonData, setGeoJsonData] = useState<GeoJSONData | null>(null);
   const [maxCaseCount, setMaxCaseCount] = useState(0);
   const [mapRef, setMapRef] = useState<L.Map | null>(null);
-  const [districtLabels, setDistrictLabels] = useState<L.Marker[]>([]);
+  
+  const geoJsonLayerRef = useRef<any>(null);
+  const districtLabelsRef = useRef<Map<string, L.Marker>>(new Map());
+  const layerGroupRef = useRef<L.LayerGroup | null>(null);
 
-  // Load GeoJSON data
+  // Load GeoJSON data once
   useEffect(() => {
     const loadGeoJSON = async () => {
       try {
@@ -70,13 +73,104 @@ export default function HeatmapMapContent() {
     fetchHeatmapData();
   }, []);
 
-  // Update max case count when district data changes
+  // Only update colors when district data changes - don't re-render GeoJSON
   useEffect(() => {
     const counts = Object.values(districtData).map(d => d.caseCount);
-    if (counts.length > 0) {
-      setMaxCaseCount(Math.max(...counts));
+    const newMax = counts.length > 0 ? Math.max(...counts) : 0;
+    
+    // Only update if max count actually changed
+    if (newMax !== maxCaseCount) {
+      setMaxCaseCount(newMax);
     }
-  }, [districtData]);
+
+    // Update layer colors and labels in place without re-rendering
+    if (geoJsonLayerRef.current && mapRef) {
+      geoJsonLayerRef.current.eachLayer((layer: any) => {
+        const feature = layer.feature;
+        const districtId = feature.properties.id;
+        const districtName = feature.properties.name;
+        const data = districtData[districtId];
+
+        if (!data) {
+          layer.setStyle({ fillOpacity: 0 });
+          return;
+        }
+
+        const color = getIntensityColor(data.caseCount, newMax);
+
+        // Update zone color
+        layer.setStyle({
+          fillColor: color,
+          fillOpacity: 0.65,
+        });
+
+        // Update label if it exists
+        const labelKey = `${districtId}-label`;
+        const existingLabel = districtLabelsRef.current.get(labelKey);
+        
+        if (!existingLabel) {
+          // Create label if it doesn't exist
+          const centroid = calculateCentroid(feature.geometry.coordinates);
+          if (centroid && layerGroupRef.current) {
+            const labelIcon = L.divIcon({
+              html: `
+                <div style="
+                  background: rgba(0, 0, 0, 0.8);
+                  color: white;
+                  padding: 6px 10px;
+                  border-radius: 6px;
+                  font-size: 12px;
+                  font-weight: bold;
+                  text-align: center;
+                  white-space: nowrap;
+                  border: 2px solid ${color};
+                  box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+                  backdrop-filter: blur(4px);
+                  font-family: system-ui, -apple-system, sans-serif;
+                ">
+                  <div>${districtName}</div>
+                  <div style="font-size: 11px; color: ${color}; margin-top: 3px; font-weight: bold;">${data.caseCount} cases</div>
+                </div>
+              `,
+              className: "district-label",
+              iconSize: [100, 50],
+              iconAnchor: [50, 25],
+            });
+
+            const marker = L.marker(centroid, { icon: labelIcon }).addTo(layerGroupRef.current);
+            districtLabelsRef.current.set(labelKey, marker);
+          }
+        } else {
+          // Update existing label's icon
+          const labelIcon = L.divIcon({
+            html: `
+              <div style="
+                background: rgba(0, 0, 0, 0.8);
+                color: white;
+                padding: 6px 10px;
+                border-radius: 6px;
+                font-size: 12px;
+                font-weight: bold;
+                text-align: center;
+                white-space: nowrap;
+                border: 2px solid ${color};
+                box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+                backdrop-filter: blur(4px);
+                font-family: system-ui, -apple-system, sans-serif;
+              ">
+                <div>${districtName}</div>
+                <div style="font-size: 11px; color: ${color}; margin-top: 3px; font-weight: bold;">${data.caseCount} cases</div>
+              </div>
+            `,
+            className: "district-label",
+            iconSize: [100, 50],
+            iconAnchor: [50, 25],
+          });
+          existingLabel.setIcon(labelIcon);
+        }
+      });
+    }
+  }, [districtData, maxCaseCount, geoJsonData, mapRef]);
 
   const handleGeoJSONEachFeature = (feature: any, layer: any) => {
     const districtId = feature.properties.id;
@@ -90,7 +184,7 @@ export default function HeatmapMapContent() {
 
     const color = getIntensityColor(data.caseCount, maxCaseCount);
 
-    // Enhanced zone styling with clear boundaries
+    // Initial zone styling with clear boundaries
     layer.setStyle({
       fillColor: color,
       weight: 3,
@@ -158,50 +252,7 @@ export default function HeatmapMapContent() {
         fillOpacity: 0.65,
       });
     });
-
-    // Add district labels on the map
-    const centroid = calculateCentroid(feature.geometry.coordinates);
-    if (centroid && mapRef) {
-      const labelIcon = L.divIcon({
-        html: `
-          <div style="
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 6px 10px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: bold;
-            text-align: center;
-            white-space: nowrap;
-            border: 2px solid ${color};
-            box-shadow: 0 2px 6px rgba(0,0,0,0.6);
-            backdrop-filter: blur(4px);
-            font-family: system-ui, -apple-system, sans-serif;
-          ">
-            <div>${districtName}</div>
-            <div style="font-size: 11px; color: ${color}; margin-top: 3px; font-weight: bold;">${data.caseCount} cases</div>
-          </div>
-        `,
-        className: "district-label",
-        iconSize: [100, 50],
-        iconAnchor: [50, 25],
-      });
-
-      const marker = L.marker(centroid, { icon: labelIcon }).addTo(mapRef);
-      districtLabels.push(marker);
-    }
   };
-
-  // Cleanup labels when data changes
-  useEffect(() => {
-    return () => {
-      districtLabels.forEach(marker => {
-        if (mapRef) {
-          mapRef.removeLayer(marker);
-        }
-      });
-    };
-  }, [districtLabels, mapRef]);
 
   return (
     <div className="relative w-full h-96 rounded-lg border border-border overflow-hidden">
@@ -255,7 +306,14 @@ export default function HeatmapMapContent() {
         center={[20.5937, 78.9629]}
         zoom={5}
         style={{ height: "100%", width: "100%" }}
-        ref={setMapRef}
+        ref={(map) => {
+          if (map && !mapRef) {
+            setMapRef(map);
+            if (!layerGroupRef.current) {
+              layerGroupRef.current = L.layerGroup().addTo(map);
+            }
+          }
+        }}
         className="chunk-based-map"
       >
         <TileLayer
@@ -264,12 +322,16 @@ export default function HeatmapMapContent() {
           opacity={0.85}
         />
 
-        {/* Render GeoJSON zones - these are the chunk-based areas */}
+        {/* Render GeoJSON zones - ONLY render once, then update in place */}
         {geoJsonData && (
           <GeoJSON 
             data={geoJsonData} 
             onEachFeature={handleGeoJSONEachFeature}
-            key={`geojson-${maxCaseCount}`}
+            ref={(geojson) => {
+              if (geojson && !geoJsonLayerRef.current) {
+                geoJsonLayerRef.current = geojson;
+              }
+            }}
           />
         )}
       </MapContainer>

@@ -16,9 +16,9 @@ export default function LiveCaseAnalysisIntake() {
   const [manualSafetyChecked, setManualSafetyChecked] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showReferenceImage, setShowReferenceImage] = useState(true);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {    e.preventDefault();
     if (!title.trim()) return;
 
     setLoading(true);
@@ -37,7 +37,7 @@ export default function LiveCaseAnalysisIntake() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 max-w-2xl text-left">
+      <div className="space-y-6 max-w-5xl text-left">
         {/* Header */}
         <div className="border-b border-border pb-4 space-y-1">
           <span className="text-[10px] uppercase font-bold tracking-widest text-primary">Real Case Review</span>
@@ -49,6 +49,33 @@ export default function LiveCaseAnalysisIntake() {
             Share your experience in simple words. Nayak will help you review both sides and show what may strengthen or weaken your case.
           </p>
         </div>
+
+        {/* Real Arguments Reference Image */}
+        <section className="space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-sm font-semibold text-foreground">Check Real Arguments - Reference View</h2>
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Module Preview</span>
+          </div>
+
+          <div className="rounded-xl border border-border bg-card/60 p-2 sm:p-3">
+            {showReferenceImage ? (
+              <img
+                src="/images/real-arguments-reference.png"
+                alt="Clash Mode AI legal debate reference"
+                className="w-full rounded-lg border border-border/70 object-cover"
+                loading="lazy"
+                onError={() => setShowReferenceImage(false)}
+              />
+            ) : (
+              <div className="rounded-lg border border-dashed border-border/80 bg-secondary/20 px-4 py-8 text-center">
+                <p className="text-sm font-semibold text-foreground">Reference image is not available yet.</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Add your uploaded image at /public/images/real-arguments-reference.png to display it here.
+                </p>
+              </div>
+            )}
+          </div>
+        </section>
 
         {/* Short Banner Disclaimer */}
         <div className="p-3.5 bg-secondary/35 border border-border/80 rounded text-xs text-muted-foreground flex gap-2 items-start">
