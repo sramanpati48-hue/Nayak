@@ -5,7 +5,8 @@ import { DashboardLayout } from "@/components/dashboard-layout";
 import { useNyaybandhuStore, TranscriptEvent } from "@/store/nyaybandhu";
 import { buildSessionRequestQueryParams } from "@/lib/request-context";
 import { useSessionContext } from "@/lib/session-context";
-import { hasPermission, getRoleLabel, getRoleSummary } from "@/lib/rbac";
+import { useTranslation } from "@/lib/language-context";
+import { hasPermission } from "@/lib/rbac";
 import { 
   Scale, 
   Play, 
@@ -44,6 +45,7 @@ export default function SessionPage({ params }: PageProps) {
     addEventStream
   } = useNyaybandhuStore();
   const { role } = useSessionContext();
+  const { t, getRoleLabel, getRoleSummary } = useTranslation();
 
   const [streamingEvent, setStreamingEvent] = useState<Partial<TranscriptEvent> | null>(null);
   const [scores, setScores] = useState({ petitioner: 50, respondent: 50 });
@@ -173,7 +175,7 @@ export default function SessionPage({ params }: PageProps) {
       <DashboardLayout>
         <div className="flex flex-col items-center justify-center min-h-[400px] gap-2">
           <Loader2 className="h-6 w-6 animate-spin text-primary" />
-          <span className="text-xs text-muted-foreground">Loading your case details...</span>
+          <span className="text-xs text-muted-foreground">{t("session.loadingDetails")}</span>
         </div>
       </DashboardLayout>
     );
@@ -183,7 +185,7 @@ export default function SessionPage({ params }: PageProps) {
     return (
       <DashboardLayout>
         <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-xs text-destructive-foreground max-w-lg mx-auto mt-12">
-          <h3 className="font-bold mb-1">Session Access Error</h3>
+          <h3 className="font-bold mb-1">{t("session.accessError")}</h3>
           <p>{error || "The requested analysis workspace could not be found."}</p>
         </div>
       </DashboardLayout>
@@ -295,8 +297,8 @@ export default function SessionPage({ params }: PageProps) {
                   {/* Report Header */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-border/60 pb-3 gap-2">
                     <div>
-                      <span className="text-[10px] uppercase font-bold tracking-widest text-primary">Nayak Case Guidance Report</span>
-                      <h2 className="text-lg font-bold text-foreground mt-0.5">Your Case Guidance Report</h2>
+                      <span className="text-[10px] uppercase font-bold tracking-widest text-primary">{t("session.guidanceReport")}</span>
+                      <h2 className="text-lg font-bold text-foreground mt-0.5">{t("session.yourGuidanceReport")}</h2>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] uppercase font-bold px-2 py-1 bg-primary/10 border border-primary/20 text-primary rounded">
@@ -317,7 +319,7 @@ export default function SessionPage({ params }: PageProps) {
                           className="text-[10px] uppercase font-bold px-2 py-1 bg-primary text-primary-foreground hover:bg-primary/90 rounded inline-flex items-center gap-1 transition-all"
                         >
                           <Download className="h-3 w-3" />
-                          <span>Export Guidance Report</span>
+                          <span>{t("common.exportGuidanceReport")}</span>
                         </button>
                       )}
                     </div>
@@ -325,7 +327,7 @@ export default function SessionPage({ params }: PageProps) {
 
                   {/* Disclaimer */}
                   <div className="p-3.5 bg-secondary/35 border border-border/80 rounded text-xs text-muted-foreground leading-relaxed">
-                    <strong>About this Guidance Report</strong>: {parsedSummary.disclaimer || "This is a preliminary, fact-based legal information output and not a final legal opinion."}
+                    <strong>{t("session.aboutReport")}</strong>: {parsedSummary.disclaimer || t("session.defaultDisclaimer")}
                   </div>
 
                   {/* 1. What Happened */}
@@ -343,7 +345,7 @@ export default function SessionPage({ params }: PageProps) {
                     <span className="font-semibold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">2. Case Strength Overview</span>
                     <div className="pl-2 space-y-1">
                       <p className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                        <span>Status:</span>
+                        <span>{t("common.status")}:</span>
                         <span className="text-accent">{activeSession.verdict?.split(".")[0]}</span>
                       </p>
                       <p className="text-xs text-muted-foreground leading-relaxed mt-1">
@@ -363,19 +365,19 @@ export default function SessionPage({ params }: PageProps) {
                   {/* Strengths & Gaps (Weaknesses) */}
                   <div className="grid gap-6 md:grid-cols-2">
                     <div className="space-y-1.5">
-                      <span className="font-semibold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">Case Strengths</span>
+                      <span className="font-semibold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">{t("session.caseStrengths")}</span>
                       <ul className="pl-6 list-disc text-xs text-muted-foreground space-y-1">
                         {parsedSummary.strengths?.map((str: string, idx: number) => (
                           <li key={idx}>{str}</li>
-                        )) || <li>No clear strengths identified yet.</li>}
+                        )) || <li>{t("session.noStrengths")}</li>}
                       </ul>
                     </div>
                     <div className="space-y-1.5">
-                      <span className="font-semibold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">Challenges / Gaps</span>
+                      <span className="font-semibold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">{t("session.challengesGaps")}</span>
                       <ul className="pl-6 list-disc text-xs text-muted-foreground space-y-1">
                         {parsedSummary.weaknesses_or_gaps?.map((weak: string, idx: number) => (
                           <li key={idx}>{weak}</li>
-                        )) || <li>No gaps or weaknesses identified yet.</li>}
+                        )) || <li>{t("session.noGaps")}</li>}
                       </ul>
                     </div>
                   </div>
@@ -383,7 +385,7 @@ export default function SessionPage({ params }: PageProps) {
                   {/* Timeline & People */}
                   <div className="grid gap-6 md:grid-cols-2">
                     <div className="space-y-1.5">
-                      <span className="font-semibold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">Timeline of Events</span>
+                      <span className="font-semibold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">{t("session.timeline")}</span>
                       <div className="pl-2 space-y-2 text-xs text-muted-foreground">
                         {parsedSummary.timeline?.map((t: any, idx: number) => (
                           <div key={idx} className="border-b border-border/30 pb-1.5 last:border-0">
@@ -397,7 +399,7 @@ export default function SessionPage({ params }: PageProps) {
                       </div>
                     </div>
                     <div className="space-y-1.5">
-                      <span className="font-semibold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">People Involved</span>
+                      <span className="font-semibold text-foreground text-xs uppercase tracking-wider block border-l border-primary pl-2">{t("session.peopleInvolved")}</span>
                       <div className="pl-2 space-y-2 text-xs text-muted-foreground">
                         {parsedSummary.people_involved?.map((p: any, idx: number) => (
                           <div key={idx} className="flex justify-between items-center border-b border-border/30 pb-1.5 last:border-0">
@@ -626,7 +628,7 @@ export default function SessionPage({ params }: PageProps) {
 
                     {canAddInternNotes && (
                       <div className="space-y-2 rounded-lg border border-primary/20 bg-primary/5 p-4">
-                        <span className="font-semibold text-foreground text-xs uppercase tracking-wider block">Intern Notes</span>
+                        <span className="font-semibold text-foreground text-xs uppercase tracking-wider block">{t("session.internNotes")}</span>
                         <p className="text-[11px] text-muted-foreground">
                           Record short case observations for the supervising lawyer. Notes are stored with the case record.
                         </p>
@@ -642,7 +644,7 @@ export default function SessionPage({ params }: PageProps) {
                           onClick={handleSaveInternNote}
                           className="inline-flex items-center justify-center rounded bg-primary text-primary-foreground hover:bg-primary/95 text-xs font-semibold h-9 px-4"
                         >
-                          Save Intern Note
+                          {t("session.saveInternNote")}
                         </button>
                         {internNotes.length > 0 && (
                           <div className="space-y-2 pt-2 border-t border-border/40">
@@ -659,13 +661,13 @@ export default function SessionPage({ params }: PageProps) {
 
                     {canViewJudgeWorkspace && (
                       <div className="space-y-2 rounded-lg border border-amber-500/20 bg-amber-500/5 p-4">
-                        <span className="font-semibold text-foreground text-xs uppercase tracking-wider block">Judge Evaluation Workspace</span>
+                        <span className="font-semibold text-foreground text-xs uppercase tracking-wider block">{t("session.judgeWorkspace")}</span>
                         <p className="text-[11px] text-muted-foreground leading-relaxed">
                           This area is intentionally read-only. It surfaces the current record, structured notes, and report state without suggesting that the system is making a judicial decision.
                         </p>
                         <div className="text-[11px] text-muted-foreground space-y-1">
                           <p><span className="font-semibold text-foreground">Assigned roles:</span> {(rbacConfig.assigned_roles || []).join(", ") || "law_intern, lawyer, judge"}</p>
-                          <p><span className="font-semibold text-foreground">Lawyer review complete:</span> {rbacConfig.lawyer_review_complete ? "Yes" : "No"}</p>
+                          <p><span className="font-semibold text-foreground">{t("session.lawyerReviewComplete")}</span> {rbacConfig.lawyer_review_complete ? t("common.yes") : t("common.no")}</p>
                         </div>
                       </div>
                     )}
@@ -764,7 +766,7 @@ export default function SessionPage({ params }: PageProps) {
               <div className="grid gap-6 md:grid-cols-3 text-left">
                 {/* Verdict Gauge */}
                 <div className="rounded-lg border border-primary/30 bg-card p-5 space-y-2 flex flex-col justify-center">
-                  <span className="text-[10px] uppercase font-bold tracking-widest text-primary">Argument Leaning</span>
+                  <span className="text-[10px] uppercase font-bold tracking-widest text-primary">{t("session.argumentLeaning")}</span>
                   <div className="text-3xl font-extrabold text-accent">{activeSession.verdict?.split(".")[0]}</div>
                   <p className="text-[11px] text-muted-foreground leading-normal mt-1">
                     {activeSession.verdict?.split(".").slice(1).join(".")}
@@ -979,7 +981,7 @@ export default function SessionPage({ params }: PageProps) {
                                     {event.card_data.answered && (
                                       <div className="flex items-center gap-1 text-[9px] text-emerald-500 font-bold uppercase tracking-wider pt-1">
                                         <CheckCircle2 className="h-3 w-3" />
-                                        <span>Answered</span>
+                                        <span>{t("common.answered")}</span>
                                       </div>
                                     )}
                                   </div>
@@ -1045,7 +1047,7 @@ export default function SessionPage({ params }: PageProps) {
               <>
                 {/* Manual Safety Toggle */}
                 <div className="rounded-lg border border-border bg-card p-4 space-y-3">
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Safety Settings</span>
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">{t("session.safetySettings")}</span>
                   <label className="flex items-start gap-2.5 cursor-pointer text-xs select-none">
                     <input
                       type="checkbox"
@@ -1134,7 +1136,7 @@ export default function SessionPage({ params }: PageProps) {
                 {canAddInternNotes && (
                   <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-3 text-xs">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="font-bold text-foreground uppercase tracking-wider">Intern Notes</span>
+                      <span className="font-bold text-foreground uppercase tracking-wider">{t("session.internNotes")}</span>
                       <span className="text-[9px] uppercase tracking-wider text-primary">Review support</span>
                     </div>
                     <p className="text-[11px] text-muted-foreground leading-relaxed">
@@ -1152,7 +1154,7 @@ export default function SessionPage({ params }: PageProps) {
                       onClick={handleSaveInternNote}
                       className="inline-flex items-center justify-center rounded bg-primary text-primary-foreground hover:bg-primary/95 text-xs font-semibold h-9 px-4"
                     >
-                      Save Intern Note
+                      {t("session.saveInternNote")}
                     </button>
                     {internNotes.length > 0 && (
                       <div className="space-y-2 pt-2 border-t border-border/40">
@@ -1171,7 +1173,7 @@ export default function SessionPage({ params }: PageProps) {
                   <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4 space-y-3 text-xs">
                     <div className="flex items-center gap-2">
                       <ShieldCheck className="h-4 w-4 text-primary" />
-                      <span className="font-bold text-foreground uppercase tracking-wider">Judge Evaluation Workspace</span>
+                      <span className="font-bold text-foreground uppercase tracking-wider">{t("session.judgeWorkspace")}</span>
                     </div>
                     <p className="text-[11px] text-muted-foreground leading-relaxed">
                       This area is read-only. It surfaces the record and structured notes without implying that the system is making a judicial decision.

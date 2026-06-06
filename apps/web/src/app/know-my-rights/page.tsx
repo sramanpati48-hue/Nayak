@@ -4,20 +4,28 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { useKnowMyRightsStore } from "@/store/know-my-rights";
-import { ShieldAlert, Heart, Search, Plus, Info, BookMarked } from "lucide-react";
+import { ShieldAlert, Heart, Search, Info, BookMarked } from "lucide-react";
+import { useTranslation } from "@/lib/language-context";
 
 export default function KnowMyRightsDashboard() {
   const { rights, resources, favorites, fetchRights, fetchResources, loading, addToFavorites, removeFromFavorites } = useKnowMyRightsStore();
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>();
   const [activeTab, setActiveTab] = useState<"rights" | "resources">("rights");
+
+  const categories = [
+    { value: "Legal Rights", label: t("knowMyRights.categories.legal") },
+    { value: "Information Rights", label: t("knowMyRights.categories.information") },
+    { value: "Property Rights", label: t("knowMyRights.categories.property") },
+    { value: "Consumer Rights", label: t("knowMyRights.categories.consumer") },
+  ];
 
   useEffect(() => {
     fetchRights(selectedCategory);
     fetchResources();
   }, [selectedCategory]);
 
-  const categories = ["Legal Rights", "Information Rights", "Property Rights", "Consumer Rights"];
   const filteredRights = searchQuery 
     ? rights.filter(r => 
         r.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -28,34 +36,31 @@ export default function KnowMyRightsDashboard() {
   return (
     <DashboardLayout>
       <div className="space-y-8">
-        {/* Module Header */}
         <div className="border-b border-border pb-6 flex flex-col gap-2">
-          <span className="text-[10px] uppercase font-bold tracking-widest text-primary">Module 03: Know Your Rights</span>
+          <span className="text-[10px] uppercase font-bold tracking-widest text-primary">{t("knowMyRights.moduleBadge")}</span>
           <div className="flex items-center gap-2.5">
             <ShieldAlert className="h-6 w-6 text-primary" />
-            <h1 className="text-2xl font-bold text-foreground">Know My Rights</h1>
+            <h1 className="text-2xl font-bold text-foreground">{t("knowMyRights.title")}</h1>
           </div>
           <p className="text-muted-foreground max-w-[800px] text-sm">
-            Understand your legal rights and responsibilities. Access guides, resources, and answers to common legal questions. Knowledge is your best defense.
+            {t("knowMyRights.description")}
           </p>
         </div>
 
-        {/* Info Callout */}
         <div className="flex items-start gap-3.5 p-4 rounded bg-secondary/30 border border-border/80 text-xs text-muted-foreground">
           <Info className="h-4.5 w-4.5 text-primary shrink-0 mt-0.5" />
           <div className="space-y-1">
-            <span className="font-semibold text-foreground block">Why this matters</span>
-            <span>Knowing your rights helps you recognize unfair treatment, ask the right questions, and make informed decisions about your case. Save your favorite rights for quick reference.</span>
+            <span className="font-semibold text-foreground block">{t("knowMyRights.whyMatters")}</span>
+            <span>{t("knowMyRights.whyMattersDesc")}</span>
           </div>
         </div>
 
-        {/* Search Bar */}
         <div className="flex gap-2 items-center">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Search rights by keyword..."
+              placeholder={t("knowMyRights.searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 rounded border border-border bg-background text-foreground placeholder-muted-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -63,7 +68,6 @@ export default function KnowMyRightsDashboard() {
           </div>
         </div>
 
-        {/* Tabs */}
         <div className="flex gap-4 border-b border-border">
           <button
             onClick={() => setActiveTab("rights")}
@@ -73,7 +77,7 @@ export default function KnowMyRightsDashboard() {
                 : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
-            Your Rights ({filteredRights.length})
+            {t("knowMyRights.yourRights", { count: filteredRights.length })}
           </button>
           <button
             onClick={() => setActiveTab("resources")}
@@ -83,15 +87,13 @@ export default function KnowMyRightsDashboard() {
                 : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
-            Resources ({resources.length})
+            {t("knowMyRights.resources", { count: resources.length })}
           </button>
         </div>
 
-        {/* Content Area */}
         <div>
           {activeTab === "rights" && (
             <div className="space-y-4">
-              {/* Category Filter */}
               <div className="flex gap-2 flex-wrap">
                 <button
                   onClick={() => setSelectedCategory(undefined)}
@@ -101,24 +103,23 @@ export default function KnowMyRightsDashboard() {
                       : "border-border text-muted-foreground hover:border-primary hover:text-foreground"
                   }`}
                 >
-                  All Categories
+                  {t("knowMyRights.allCategories")}
                 </button>
                 {categories.map((cat) => (
                   <button
-                    key={cat}
-                    onClick={() => setSelectedCategory(cat)}
+                    key={cat.value}
+                    onClick={() => setSelectedCategory(cat.value)}
                     className={`px-3 py-1 rounded text-xs font-medium border transition-all ${
-                      selectedCategory === cat
+                      selectedCategory === cat.value
                         ? "bg-primary text-primary-foreground border-primary"
                         : "border-border text-muted-foreground hover:border-primary hover:text-foreground"
                     }`}
                   >
-                    {cat}
+                    {cat.label}
                   </button>
                 ))}
               </div>
 
-              {/* Rights Grid */}
               <div className="grid gap-4 md:grid-cols-2 mt-6">
                 {filteredRights.map((right) => (
                   <div
@@ -159,7 +160,7 @@ export default function KnowMyRightsDashboard() {
                       </p>
                       {right.source && (
                         <span className="text-[9px] text-primary/70 font-medium">
-                          Source: {right.source}
+                          {t("common.source")}: {right.source}
                         </span>
                       )}
                     </div>
@@ -170,7 +171,7 @@ export default function KnowMyRightsDashboard() {
               {filteredRights.length === 0 && (
                 <div className="text-center py-12">
                   <p className="text-muted-foreground text-sm">
-                    No rights found matching your search.
+                    {t("knowMyRights.noResults")}
                   </p>
                 </div>
               )}
@@ -205,7 +206,7 @@ export default function KnowMyRightsDashboard() {
                       rel="noopener noreferrer"
                       className="text-xs text-accent hover:underline font-medium"
                     >
-                      View Resource →
+                      {t("knowMyRights.viewResource")}
                     </Link>
                   )}
                 </div>

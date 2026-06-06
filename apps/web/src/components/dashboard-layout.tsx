@@ -4,8 +4,9 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "./theme-toggle";
+import { LanguageToggle } from "./language-toggle";
 import { useSessionContext } from "@/lib/session-context";
-import { getRoleSummary, getRoleLabel } from "@/lib/rbac";
+import { useTranslation } from "@/lib/language-context";
 import { 
   Scale, 
   BookOpen, 
@@ -27,22 +28,23 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const { role } = useSessionContext();
+  const { t, getRoleLabel, getRoleSummary } = useTranslation();
 
   const navItems = [
-    { name: "Home (My Dashboard)", href: "/", icon: LayoutDashboard },
+    { name: t("nav.home"), href: "/", icon: LayoutDashboard },
     { 
-      name: "Nyaybandhu (See Both Sides)", 
+      name: t("nav.nyaybandhu"), 
       href: "/nyaybandhu", 
       icon: Scale,
       subItems: [
-        { name: "Practice Arena", href: "/nyaybandhu/practice", icon: Play },
-        { name: "Check Real Arguments", href: "/nyaybandhu/real-life", icon: Briefcase },
+        { name: t("nav.practiceArena"), href: "/nyaybandhu/practice", icon: Play },
+        { name: t("nav.checkRealArguments"), href: "/nyaybandhu/real-life", icon: Briefcase },
       ]
     },
-    { name: "VicharakBandhu (Review Documents)", href: "/vicharakbandhu", icon: BookOpen },
-    { name: "Case Heatmap", href: "/case-heatmap", icon: MapPin },
-    { name: "Reports (My Case Summaries)", href: "/reports", icon: FileText },
-    { name: "Settings", href: "/settings", icon: Settings },
+    { name: t("nav.vicharakbandhu"), href: "/vicharakbandhu", icon: BookOpen },
+    { name: t("nav.caseHeatmap"), href: "/case-heatmap", icon: MapPin },
+    { name: t("nav.reports"), href: "/reports", icon: FileText },
+    { name: t("nav.settings"), href: "/settings", icon: Settings },
   ];
 
   const isActive = (href: string) => {
@@ -75,7 +77,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         <div className="p-6 border-b border-border flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5 font-semibold text-lg tracking-wide text-accent">
             <Scale className="h-5.5 w-5.5 text-primary" />
-            <span>NAYAK</span>
+            <span>{t("layout.brand")}</span>
           </Link>
         </div>
 
@@ -139,7 +141,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         <div className="p-4 border-t border-border mt-auto flex items-center justify-between text-[10px] text-muted-foreground">
           <span className="flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full bg-emerald-500/80 animate-pulse" />
-            Assistant Ready
+            {t("layout.assistantReady")}
           </span>
           <span>v1.0.0</span>
         </div>
@@ -154,7 +156,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
               className="md:hidden p-1.5 border border-border rounded-md bg-secondary text-foreground"
-              aria-label="Toggle Mobile Menu"
+              aria-label={t("layout.toggleMobileMenu")}
             >
               {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
             </button>
@@ -162,15 +164,16 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             {/* Status indicators */}
             <div className="hidden sm:flex items-center gap-2.5 text-xs text-muted-foreground border-r border-border/50 pr-4">
               <Shield className="h-3.5 w-3.5 text-primary" />
-              <span>Secure & Private</span>
+              <span>{t("layout.securePrivate")}</span>
             </div>
             <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground">
               <Activity className="h-3 w-3 text-emerald-500" />
-              <span>Connected & Ready</span>
+              <span>{t("layout.connectedReady")}</span>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
+            <LanguageToggle />
             <ThemeToggle />
           </div>
         </header>

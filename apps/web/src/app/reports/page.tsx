@@ -22,8 +22,10 @@ import {
 } from "lucide-react";
 
 import { formatGuidanceReport, triggerDownload } from "@/lib/report-formatter";
+import { useTranslation } from "@/lib/language-context";
 
 export default function JudicialReports() {
+  const { t } = useTranslation();
   const [filter, setFilter] = useState<"all" | "nyaybandhu" | "vicharakbandhu">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
@@ -47,16 +49,16 @@ export default function JudicialReports() {
       id: s.id,
       title: s.title,
       module: "nyaybandhu" as const,
-      category: s.mode === "practice" ? "Practice Arena" : "Check Real Arguments",
+      category: s.mode === "practice" ? t("reports.practiceArena") : t("reports.checkRealArguments"),
       status: s.status,
       created_at: s.created_at,
-      summary: s.summary || s.description || "Active simulation in progress.",
+      summary: s.summary || s.description || t("reports.activeSimulation"),
       report: s.status === "finalized" ? {
-        compiled_at: s.created_at, // Use created_at as compiled_at fallback
+        compiled_at: s.created_at,
         case_overview: {
           title: s.title,
-          summary: s.description || "Testing case arguments.",
-          status: "Finalized"
+          summary: s.description || t("reports.testingArguments"),
+          status: t("common.finalized")
         },
         description: s.description,
         mode: s.mode,
@@ -69,10 +71,10 @@ export default function JudicialReports() {
       id: r.id,
       title: r.title,
       module: "vicharakbandhu" as const,
-      category: "Review Files & Gaps Summary",
+      category: t("reports.reviewFiles"),
       status: r.status,
       created_at: r.created_at,
-      summary: r.report?.findings_summary || r.case_summary || "Active review folder in progress.",
+      summary: r.report?.findings_summary || r.case_summary || t("reports.activeReview"),
       report: r.status === "finalized" ? r.report : null
     }))
   ];
@@ -249,13 +251,13 @@ export default function JudicialReports() {
       <div className="space-y-6">
         {/* Header */}
         <div className="border-b border-border pb-4 space-y-1 text-left">
-          <span className="text-[10px] uppercase font-bold tracking-widest text-primary">Compiled Records</span>
+          <span className="text-[10px] uppercase font-bold tracking-widest text-primary">{t("reports.compiledRecords")}</span>
           <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
             <FileText className="h-4.5 w-4.5 text-primary" />
-            <span>Case Summaries</span>
+            <span>{t("reports.caseSummaries")}</span>
           </h1>
           <p className="text-xs text-muted-foreground">
-            Organized timelines, checklists, and case summaries compiled from your Nyaybandhu (See Both Sides) and VicharakBandhu (Review Documents) workspaces.
+            {t("reports.reportsSubtitle")}
           </p>
         </div>
 
@@ -268,7 +270,7 @@ export default function JudicialReports() {
                 filter === "all" ? "bg-card text-accent shadow-sm border border-border/50" : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              All Case Summaries
+              {t("reports.allCaseSummaries")}
             </button>
             <button
               onClick={() => setFilter("nyaybandhu")}
@@ -276,7 +278,7 @@ export default function JudicialReports() {
                 filter === "nyaybandhu" ? "bg-card text-accent shadow-sm border border-border/50" : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              Nyaybandhu
+              {t("reports.filterNyay")}
             </button>
             <button
               onClick={() => setFilter("vicharakbandhu")}
@@ -284,7 +286,7 @@ export default function JudicialReports() {
                 filter === "vicharakbandhu" ? "bg-card text-accent shadow-sm border border-border/50" : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              VicharakBandhu
+              {t("reports.filterVicharak")}
             </button>
           </div>
 
@@ -292,7 +294,7 @@ export default function JudicialReports() {
             <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Search index..."
+              placeholder={t("reports.searchIndex")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9 w-full h-8 border border-border rounded bg-card text-xs focus:outline-none focus:ring-1 focus:ring-primary text-foreground"
@@ -305,18 +307,18 @@ export default function JudicialReports() {
           {isLoading && reportItems.length === 0 ? (
             <div className="p-12 text-center flex flex-col items-center justify-center min-h-[200px] gap-2">
               <Loader2 className="h-6 w-6 animate-spin text-primary" />
-              <span className="text-xs text-muted-foreground">Syncing workspace logs...</span>
+              <span className="text-xs text-muted-foreground">{t("reports.syncingLogs")}</span>
             </div>
           ) : filteredReports.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full text-xs text-left border-collapse">
                 <thead>
                   <tr className="border-b border-border bg-secondary/15 text-muted-foreground font-semibold">
-                    <th className="p-4">Origin Module</th>
-                    <th className="p-4">Report File Title</th>
-                    <th className="p-4">Category</th>
-                    <th className="p-4">Status / Availability</th>
-                    <th className="p-4">Date Created</th>
+                    <th className="p-4">{t("reports.originModule")}</th>
+                    <th className="p-4">{t("reports.reportFileTitle")}</th>
+                    <th className="p-4">{t("reports.category")}</th>
+                    <th className="p-4">{t("reports.statusAvailability")}</th>
+                    <th className="p-4">{t("reports.dateCreated")}</th>
                     <th className="p-4 text-right">Actions</th>
                   </tr>
                 </thead>

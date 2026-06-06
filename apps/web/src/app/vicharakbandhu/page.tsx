@@ -5,11 +5,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { useVicharakBandhuStore } from "@/store/vicharakbandhu";
-import { BookOpen, Plus, Info, History, ArrowRight, Loader2 } from "lucide-react";
+import { BookOpen, Plus, Info, History, Loader2 } from "lucide-react";
+import { useTranslation } from "@/lib/language-context";
 
 export default function VicharakBandhuDashboard() {
   const router = useRouter();
   const { reviews, fetchHistory, createReview, loading } = useVicharakBandhuStore();
+  const { t } = useTranslation();
   
   const [title, setTitle] = useState("Judicial Review File - Case B");
   const [createLoading, setCreateLoading] = useState(false);
@@ -29,7 +31,7 @@ export default function VicharakBandhuDashboard() {
       const reviewId = await createReview(title);
       router.push(`/vicharakbandhu/${reviewId}`);
     } catch (err: any) {
-      setError(err.message || "Failed to initialize review case");
+      setError(err.message || t("vicharakbandhu.failedReview"));
       setCreateLoading(false);
     }
   };
@@ -37,33 +39,29 @@ export default function VicharakBandhuDashboard() {
   return (
     <DashboardLayout>
       <div className="space-y-8">
-        {/* Module Header */}
         <div className="border-b border-border pb-6 flex flex-col gap-2">
-          <span className="text-[10px] uppercase font-bold tracking-widest text-primary">Module 02: Review Files</span>
+          <span className="text-[10px] uppercase font-bold tracking-widest text-primary">{t("vicharakbandhu.moduleBadge")}</span>
           <div className="flex items-center gap-2.5">
             <BookOpen className="h-6 w-6 text-primary" />
-            <h1 className="text-2xl font-bold text-foreground">VicharakBandhu (Review Documents)</h1>
+            <h1 className="text-2xl font-bold text-foreground">{t("vicharakbandhu.title")}</h1>
           </div>
           <p className="text-muted-foreground max-w-[800px] text-sm">
-            Review case files, witness statements, and document records. Note down key facts, check for differences in stories, and compile summaries.
+            {t("vicharakbandhu.description")}
           </p>
         </div>
 
-        {/* Operational Scope callout */}
         <div className="flex items-start gap-3.5 p-4 rounded bg-secondary/30 border border-border/80 text-xs text-muted-foreground">
           <Info className="h-4.5 w-4.5 text-primary shrink-0 mt-0.5" />
           <div className="space-y-1">
-            <span className="font-semibold text-foreground block">How it works</span>
-            <span>VicharakBandhu helps you check documents and statements. You can upload files, write key case notes, and see a summary checklist of your case. It does not decide cases or act as a judge.</span>
+            <span className="font-semibold text-foreground block">{t("common.howItWorks")}</span>
+            <span>{t("vicharakbandhu.howItWorksDesc")}</span>
           </div>
         </div>
 
-        {/* Form and History Grid */}
         <div className="grid gap-6 md:grid-cols-3">
-          {/* Intake column */}
           <div className="space-y-5 bg-card border border-border p-5 rounded-lg shadow-sm">
             <h3 className="text-xs font-bold uppercase tracking-wider text-accent border-b border-border/60 pb-2">
-              Start New Document Review
+              {t("vicharakbandhu.startReview")}
             </h3>
             
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -74,7 +72,7 @@ export default function VicharakBandhuDashboard() {
               )}
 
               <div className="space-y-1 text-xs">
-                <label className="font-semibold text-muted-foreground block">Case Name</label>
+                <label className="font-semibold text-muted-foreground block">{t("vicharakbandhu.caseName")}</label>
                 <input
                   type="text"
                   required
@@ -92,38 +90,37 @@ export default function VicharakBandhuDashboard() {
                 {createLoading ? (
                   <>
                     <Loader2 className="h-3 w-3 animate-spin" />
-                    <span>Creating...</span>
+                    <span>{t("vicharakbandhu.creating")}</span>
                   </>
                 ) : (
                   <>
                     <Plus className="h-3.5 w-3.5" />
-                    <span>Start Document Review</span>
+                    <span>{t("vicharakbandhu.startButton")}</span>
                   </>
                 )}
               </button>
             </form>
           </div>
 
-          {/* History column */}
           <div className="md:col-span-2 rounded-lg border border-border bg-card p-5">
             <h3 className="text-xs font-bold uppercase tracking-wider text-accent border-b border-border/60 pb-2 flex items-center gap-2">
               <History className="h-4 w-4 text-primary" />
-              <span>My Document Reviews</span>
+              <span>{t("vicharakbandhu.myReviews")}</span>
             </h3>
             
             <div className="overflow-x-auto mt-4">
               {loading ? (
                 <div className="py-6 text-center text-xs text-muted-foreground">
-                  Loading history logs...
+                  {t("vicharakbandhu.loadingHistory")}
                 </div>
               ) : reviews.length > 0 ? (
                 <table className="w-full text-xs text-left border-collapse">
                   <thead>
                     <tr className="border-b border-border/60 text-muted-foreground font-medium">
-                      <th className="pb-2 font-semibold">Case ID</th>
-                      <th className="pb-2 font-semibold">Case Name</th>
-                      <th className="pb-2 font-semibold">Status</th>
-                      <th className="pb-2 font-semibold">Date Started</th>
+                      <th className="pb-2 font-semibold">{t("common.caseId")}</th>
+                      <th className="pb-2 font-semibold">{t("common.caseName")}</th>
+                      <th className="pb-2 font-semibold">{t("common.status")}</th>
+                      <th className="pb-2 font-semibold">{t("common.dateStarted")}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/40">
@@ -145,7 +142,7 @@ export default function VicharakBandhuDashboard() {
                               ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" 
                               : "bg-secondary text-muted-foreground border-border/50"
                           }`}>
-                            {rev.status === "active" ? "Active" : "Finalized"}
+                            {rev.status === "active" ? t("common.active") : t("common.finalized")}
                           </span>
                         </td>
                         <td className="py-3">{new Date(rev.created_at).toLocaleDateString()}</td>
@@ -155,7 +152,7 @@ export default function VicharakBandhuDashboard() {
                 </table>
               ) : (
                 <div className="py-6 text-center text-xs text-muted-foreground">
-                  No active or historical reviews found. Use the panel on the left to start one.
+                  {t("vicharakbandhu.noReviews")}
                 </div>
               )}
             </div>
