@@ -1,5 +1,6 @@
 "use client";
 
+import { apiFetch } from "@/lib/api-client";
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
@@ -35,7 +36,7 @@ function AuthContinueContent() {
     const completeAuth = async () => {
       try {
         const token = await getToken();
-        const res = await fetch(`${API_BASE_URL}/users/sync`, {
+        const res = await apiFetch(`${API_BASE_URL}/users/sync`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
