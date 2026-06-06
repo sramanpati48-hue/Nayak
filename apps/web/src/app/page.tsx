@@ -67,7 +67,7 @@ export default function GatewayHome() {
               )}
             </div>
 
-              <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-6 md:grid-cols-2">
               <button
                 onClick={() => startMode("judge")}
                 className="group rounded-xl border border-border bg-card/90 backdrop-blur-sm p-6 text-left hover:border-primary/50 transition-all shadow-lg"
@@ -82,7 +82,6 @@ export default function GatewayHome() {
                 <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{t("gateway.judgeDesc")}</p>
               </button>
 
-<<<<<<< HEAD
               <button
                 onClick={() => startMode("portal")}
                 className="group rounded-xl border border-border bg-card/90 backdrop-blur-sm p-6 text-left hover:border-primary/50 transition-all shadow-lg"
@@ -92,76 +91,31 @@ export default function GatewayHome() {
                     <Users className="h-6 w-6" />
                   </div>
                   <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
-=======
-          {/* Emergency Safety Card */}
-          <div className="rounded-lg border border-border bg-card p-6 flex flex-col justify-between hover:border-primary/45 transition-all shadow-md md:col-span-2 lg:col-span-1">
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-2 bg-secondary rounded border border-border text-primary">
-                  <ShieldAlert className="h-5 w-5" />
                 </div>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-primary border border-primary/20 px-2 py-0.5 rounded">
-                  Safety Module
-                </span>
-              </div>
-              <h2 className="text-lg font-bold text-foreground">
-                Emergency & Safety Hub
-              </h2>
-              <p className="mt-2.5 text-xs text-muted-foreground leading-relaxed">
-                Track live location, prepare a one-tap SOS package, and jump to legal, medical, and protection resources when you need urgent support.
-              </p>
-            </div>
-            <div className="mt-8 pt-4 border-t border-border/40 flex items-center gap-4 text-xs font-medium">
-              <Link 
-                href="/emergency" 
-                className="flex items-center gap-1 text-accent hover:underline"
-              >
-                Open Safety Hub <ArrowRight className="h-3 w-3" />
-              </Link>
-              <span className="text-border">|</span>
-              <Link 
-                href="/emergency#location" 
-                className="flex items-center gap-1 text-accent hover:underline"
-              >
-                Know My Location <MapPin className="h-3 w-3" />
+                <h2 className="text-xl font-bold">{t("gateway.portalTitle")}</h2>
+                <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{t("gateway.portalDesc")}</p>
               </button>
+            </div>
 
-              {/* Emergency Safety Card */}
-              <div className="rounded-lg border border-border bg-card p-6 flex flex-col justify-between hover:border-primary/45 transition-all shadow-md md:col-span-2 lg:col-span-1">
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="rounded-lg border border-border bg-card p-6 flex flex-col justify-between hover:border-primary/45 transition-all shadow-md">
                 <div>
                   <div className="flex items-center justify-between mb-4">
                     <div className="p-2 bg-secondary rounded border border-border text-primary">
                       <ShieldAlert className="h-5 w-5" />
                     </div>
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-primary border border-primary/20 px-2 py-0.5 rounded">
-                      Safety Module
-                    </span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-primary border border-primary/20 px-2 py-0.5 rounded">Safety Module</span>
                   </div>
-                  <h2 className="text-lg font-bold text-foreground">
-                    Emergency & Safety Hub
-                  </h2>
-                  <p className="mt-2.5 text-xs text-muted-foreground leading-relaxed">
-                    Track live location, prepare a one-tap SOS package, and jump to legal, medical, and protection resources when you need urgent support.
-                  </p>
+                  <h2 className="text-lg font-bold text-foreground">Emergency & Safety Hub</h2>
+                  <p className="mt-2.5 text-xs text-muted-foreground leading-relaxed">Track live location, prepare a one-tap SOS package, and jump to legal, medical, and protection resources when you need urgent support.</p>
                 </div>
                 <div className="mt-8 pt-4 border-t border-border/40 flex items-center gap-4 text-xs font-medium">
-                  <Link 
-                    href="/emergency" 
-                    className="flex items-center gap-1 text-accent hover:underline"
-                  >
-                    Open Safety Hub <ArrowRight className="h-3 w-3" />
-                  </Link>
+                  <Link href="/emergency" className="flex items-center gap-1 text-accent hover:underline">Open Safety Hub <ArrowRight className="h-3 w-3" /></Link>
                   <span className="text-border">|</span>
-                  <Link 
-                    href="/emergency#location" 
-                    className="flex items-center gap-1 text-accent hover:underline"
-                  >
-                    Know My Location <MapPin className="h-3 w-3" />
-                  </Link>
+                  <Link href="/emergency#location" className="flex items-center gap-1 text-accent hover:underline">Know My Location <MapPin className="h-3 w-3" /></Link>
                 </div>
               </div>
 
-              {/* VicharakBandhu Card */}
               <div className="rounded-lg border border-border bg-card p-6 flex flex-col justify-between hover:border-primary/45 transition-all shadow-md">
                 <div>
                   <div className="flex items-center justify-between mb-4">
@@ -173,3 +127,17 @@ export default function GatewayHome() {
                   <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{t("gateway.portalDesc")}</p>
                 </div>
               </div>
+            </div>
+
+            {!isSignedIn && (
+              <div className="text-center text-xs text-muted-foreground">
+                {t("gateway.authHint")} {" "}
+                <Link href="/sign-up" className="text-accent hover:underline">{t("gateway.createAccount")}</Link>
+              </div>
+            )}
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}
