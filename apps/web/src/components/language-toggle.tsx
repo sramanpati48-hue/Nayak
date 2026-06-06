@@ -19,6 +19,7 @@ export function LanguageToggle() {
   const options: { value: Locale; label: string }[] = [
     { value: "en", label: "EN" },
     { value: "hi", label: "HI" },
+    { value: "bn", label: "BN" },
   ];
 
   return (
@@ -43,7 +44,9 @@ export function LanguageToggle() {
             aria-label={
               option.value === "en"
                 ? t("language.switchToEnglish")
-                : t("language.switchToHindi")
+                : option.value === "hi"
+                ? t("language.switchToHindi")
+                : t("language.switchToBengali")
             }
             aria-pressed={active}
           >

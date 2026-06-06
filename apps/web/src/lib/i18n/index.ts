@@ -1,11 +1,12 @@
 import type { Locale, TranslationTree } from "./types";
 import { en } from "./en";
 import { hi } from "./hi";
+import { bn } from "./bn";
 
-const dictionaries: Record<Locale, TranslationTree> = { en, hi };
+const dictionaries: Record<Locale, TranslationTree> = { en, hi, bn };
 
 export function isLocale(value: string | null | undefined): value is Locale {
-  return value === "en" || value === "hi";
+  return value === "en" || value === "hi" || value === "bn";
 }
 
 export function getDictionary(locale: Locale): TranslationTree {

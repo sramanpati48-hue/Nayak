@@ -28,8 +28,10 @@ export const en: TranslationTree = {
     label: "Language",
     english: "English",
     hindi: "Hindi",
+    bengali: "Bengali",
     switchToEnglish: "Switch to English",
     switchToHindi: "Switch to Hindi",
+    switchToBengali: "Switch to Bengali",
   },
   nav: {
     home: "Home (My Dashboard)",

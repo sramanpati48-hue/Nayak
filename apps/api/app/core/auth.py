@@ -72,12 +72,17 @@ async def update_clerk_public_metadata(user_id: str, metadata: Dict[str, Any]) -
     if not settings.CLERK_SECRET_KEY:
         return
 
-    async with httpx.AsyncClient(timeout=10.0) as client:
-        await client.patch(
-            f"https://api.clerk.com/v1/users/{user_id}/metadata",
-            headers={
-                "Authorization": f"Bearer {settings.CLERK_SECRET_KEY}",
-                "Content-Type": "application/json",
-            },
-            json={"public_metadata": metadata},
-        )
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            await client.patch(
+                f"https://api.clerk.com/v1/users/{user_id}/metadata",
+                headers={
+                    "Authorization": f"Bearer {settings.CLERK_SECRET_KEY}",
+                    "Content-Type": "application/json",
+                },
+                json={"public_metadata": metadata},
+            )
+    except Exception as exc:
+        # Log the error but do not raise, ensuring offline/mock modes do not break sync
+        import logging
+        logging.getLogger("nayak-api").warning(f"Failed to update Clerk metadata for user {user_id}: {exc}")
