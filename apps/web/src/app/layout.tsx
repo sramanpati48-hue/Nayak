@@ -17,7 +17,7 @@ const notoSansDevanagari = Noto_Sans_Devanagari({
 
 export const metadata: Metadata = {
   title: "Nayak - AI Courtroom & Judicial Review Suite",
-  description: "Advanced adversarial legal analysis (Nyaybandhu) and judicial review support (VicharakBandhu) system.",
+  description: "Advanced legal analysis, judicial review support, and emergency safety tools for location tracking, SOS alerts, and help resources.",
 };
 
 export default function RootLayout({

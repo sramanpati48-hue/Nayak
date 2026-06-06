@@ -82,6 +82,17 @@
   width: 6px;
   height: 6px;
 }
+
+/* Emergency visual alert (flashing border) */
+@keyframes emergency-flash {
+  0% { box-shadow: 0 0 0 0 rgba(220,38,38,0.0); }
+  50% { box-shadow: 0 0 0 6px rgba(220,38,38,0.12); }
+  100% { box-shadow: 0 0 0 0 rgba(220,38,38,0.0); }
+}
+
+.emergency-active {
+  animation: emergency-flash 1s infinite ease-in-out;
+}
 ::-webkit-scrollbar-track {
   background: hsl(var(--background));
 }

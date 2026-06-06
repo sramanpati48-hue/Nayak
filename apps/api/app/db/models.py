@@ -152,3 +152,18 @@ class JudicialReport(Base):
         DateTime, default=datetime.datetime.utcnow
     )
 
+
+class SOSReport(Base):
+    """
+    Store SOS reports from clients. Payload stored as JSON; optional file path for uploaded media.
+    """
+    __tablename__ = "sos_reports"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, index=True)
+    category: Mapped[Optional[str]] = mapped_column(String(120), nullable=True)
+    payload: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True)
+    media_path: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime, default=datetime.datetime.utcnow
+    )
+

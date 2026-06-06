@@ -20,7 +20,8 @@ import {
   User,
   Shield,
   Activity,
-  MapPin
+  MapPin,
+  ShieldAlert
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -41,10 +42,18 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         { name: t("nav.checkRealArguments"), href: "/nyaybandhu/real-life", icon: Briefcase },
       ]
     },
+<<<<<<< HEAD
     { name: t("nav.vicharakbandhu"), href: "/vicharakbandhu", icon: BookOpen },
     { name: t("nav.caseHeatmap"), href: "/case-heatmap", icon: MapPin },
+    { name: t("nav.emergency") || "Emergency & Safety", href: "/emergency", icon: ShieldAlert },
     { name: t("nav.reports"), href: "/reports", icon: FileText },
     { name: t("nav.settings"), href: "/settings", icon: Settings },
+=======
+    { name: "VicharakBandhu (Review Documents)", href: "/vicharakbandhu", icon: BookOpen },
+    { name: "Emergency & Safety", href: "/emergency", icon: ShieldAlert },
+    { name: "Reports (My Case Summaries)", href: "/reports", icon: FileText },
+    { name: "Settings", href: "/settings", icon: Settings },
+>>>>>>> 4893353 (add helpline)
   ];
 
   const isActive = (href: string) => {
