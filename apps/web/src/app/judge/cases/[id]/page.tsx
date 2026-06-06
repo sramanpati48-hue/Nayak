@@ -2,11 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import Link from "next/link";
 import { JudgeLayout } from "@/components/judge-layout";
 import { apiFetch } from "@/lib/api-client";
 import { useTranslation } from "@/lib/language-context";
-import { Loader2, Upload, FileText, ArrowUpRight } from "lucide-react";
+import { Loader2, Upload, FileText } from "lucide-react";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 

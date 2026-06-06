@@ -255,37 +255,6 @@ class TestNyaybandhuRbacApi(unittest.TestCase):
         )
         self.assertEqual(outsider_access.status_code, 403)
 
-    def test_user_sync_updates_role(self):
-        # 1. Sync first time as normal_user on portal
-        sync_payload_1 = {"portal": "portal", "intended_role": "normal_user"}
-        response = self.client.post(
-            "/api/v1/users/sync",
-            headers={**auth_headers("normal_user", "sync-test-user-1"), "Content-Type": "application/json"},
-            content=json.dumps(sync_payload_1),
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["role"], "normal_user")
-
-        # 2. Sync as judge on judge portal - should update role to judge
-        sync_payload_2 = {"portal": "judge"}
-        response = self.client.post(
-            "/api/v1/users/sync",
-            headers={**auth_headers("normal_user", "sync-test-user-1"), "Content-Type": "application/json"},
-            content=json.dumps(sync_payload_2),
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["role"], "judge")
-
-        # 3. Sync back as lawyer on portal - should update role to lawyer
-        sync_payload_3 = {"portal": "portal", "intended_role": "lawyer"}
-        response = self.client.post(
-            "/api/v1/users/sync",
-            headers={**auth_headers("judge", "sync-test-user-1"), "Content-Type": "application/json"},
-            content=json.dumps(sync_payload_3),
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["role"], "lawyer")
-
 
 if __name__ == "__main__":
     unittest.main()

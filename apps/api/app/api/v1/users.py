@@ -131,39 +131,11 @@ async def sync_current_user(
         db.add(user)
     else:
         user.portal = payload.portal
-        if payload.portal == "judge":
-            user.role = "judge"
-        elif payload.portal == "portal":
-            if requested_role in {"normal_user", "lawyer", "law_intern"}:
-                user.role = requested_role
-            elif user.role not in {"normal_user", "lawyer", "law_intern"}:
-                user.role = "normal_user"
         if email and not user.email:
             user.email = email
 
-    from sqlalchemy.exc import IntegrityError
-    try:
-        await db.commit()
-        await db.refresh(user)
-    except IntegrityError:
-        await db.rollback()
-        # Retrieve the user created by the concurrent request
-        result = await db.execute(select(User).where(User.id == clerk_id))
-        user = result.scalar_one_or_none()
-        if not user:
-            raise
-        user.portal = payload.portal
-        if payload.portal == "judge":
-            user.role = "judge"
-        elif payload.portal == "portal":
-            if requested_role in {"normal_user", "lawyer", "law_intern"}:
-                user.role = requested_role
-            elif user.role not in {"normal_user", "lawyer", "law_intern"}:
-                user.role = "normal_user"
-        if email and not user.email:
-            user.email = email
-        await db.commit()
-        await db.refresh(user)
+    await db.commit()
+    await db.refresh(user)
 
     await update_clerk_public_metadata(user.id, {"role": user.role, "portal": user.portal})
 

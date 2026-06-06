@@ -28,10 +28,8 @@ export const hi: TranslationTree = {
     label: "भाषा",
     english: "English",
     hindi: "हिंदी",
-    bengali: "बंगाली",
     switchToEnglish: "अंग्रेज़ी में बदलें",
     switchToHindi: "हिंदी में बदलें",
-    switchToBengali: "बंगाली में बदलें",
   },
   nav: {
     home: "होम (मेरा डैशबोर्ड)",
