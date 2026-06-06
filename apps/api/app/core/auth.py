@@ -38,17 +38,21 @@ def verify_clerk_token(token: str) -> Dict[str, Any]:
             algorithms=["RS256"],
             options={"verify_aud": False},
         )
-    except jwt.PyJWTError as exc:
+    except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication token.",
+            detail=f"Invalid authentication token or JWKS lookup failed: {exc}",
         ) from exc
 
-    if settings.CLERK_ISSUER and payload.get("iss") != settings.CLERK_ISSUER:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token issuer.",
-        )
+    if settings.CLERK_ISSUER:
+        # Normalize trailing slashes for robustness
+        issuer = settings.CLERK_ISSUER.rstrip("/")
+        token_iss = payload.get("iss", "").rstrip("/")
+        if token_iss != issuer:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token issuer.",
+            )
 
     if payload.get("exp") and payload["exp"] < time.time():
         raise HTTPException(
@@ -69,15 +73,21 @@ def extract_bearer_token(request: Request) -> Optional[str]:
 
 
 async def update_clerk_public_metadata(user_id: str, metadata: Dict[str, Any]) -> None:
-    if not settings.CLERK_SECRET_KEY:
+    if not settings.CLERK_SECRET_KEY or user_id == "anonymous":
         return
 
-    async with httpx.AsyncClient(timeout=10.0) as client:
-        await client.patch(
-            f"https://api.clerk.com/v1/users/{user_id}/metadata",
-            headers={
-                "Authorization": f"Bearer {settings.CLERK_SECRET_KEY}",
-                "Content-Type": "application/json",
-            },
-            json={"public_metadata": metadata},
-        )
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            await client.patch(
+                f"https://api.clerk.com/v1/users/{user_id}/metadata",
+                headers={
+                    "Authorization": f"Bearer {settings.CLERK_SECRET_KEY}",
+                    "Content-Type": "application/json",
+                },
+                json={"public_metadata": metadata},
+            )
+    except Exception as exc:
+        # Avoid blocking user sync flow if Clerk is temporarily down or API keys are invalid
+        import logging
+        logger = logging.getLogger("app")
+        logger.error(f"Failed to update Clerk user metadata for {user_id}: {exc}")
