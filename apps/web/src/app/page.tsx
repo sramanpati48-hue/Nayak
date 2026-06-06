@@ -6,14 +6,17 @@ import { DashboardLayout } from "@/components/dashboard-layout";
 import { Scale, BookOpen, FileText, ArrowRight, ShieldAlert, Award } from "lucide-react";
 import { useNyaybandhuStore } from "@/store/nyaybandhu";
 import { useVicharakBandhuStore } from "@/store/vicharakbandhu";
+import { useKnowMyRightsStore } from "@/store/know-my-rights";
 
 export default function Home() {
   const { sessions, fetchHistory: fetchNyayHistory } = useNyaybandhuStore();
   const { reviews, fetchHistory: fetchVicharakHistory } = useVicharakBandhuStore();
+  const { rights, favorites, fetchRights } = useKnowMyRightsStore();
 
   useEffect(() => {
     fetchNyayHistory();
     fetchVicharakHistory();
+    fetchRights();
   }, []);
 
   const activeSessionsCount = sessions.filter(s => s.status === "active").length;
@@ -21,6 +24,7 @@ export default function Home() {
   const compiledReportsCount = 
     sessions.filter(s => s.status === "finalized").length + 
     reviews.filter(r => r.status === "finalized").length;
+  const favoritedRightsCount = favorites.length;
 
   return (
     <DashboardLayout>
@@ -37,7 +41,7 @@ export default function Home() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Active Cases</span>
@@ -64,10 +68,19 @@ export default function Home() {
             <div className="mt-3 text-3xl font-semibold text-foreground">{compiledReportsCount}</div>
             <p className="text-[11px] text-muted-foreground mt-1">Completed case summaries ready to read</p>
           </div>
+
+          <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Saved Rights</span>
+              <Award className="h-4 w-4 text-primary" />
+            </div>
+            <div className="mt-3 text-3xl font-semibold text-foreground">{favoritedRightsCount}</div>
+            <p className="text-[11px] text-muted-foreground mt-1">Rights saved for quick reference</p>
+          </div>
         </div>
 
         {/* Module Panels */}
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {/* Nyaybandhu Card */}
           <div className="rounded-lg border border-border bg-card p-6 flex flex-col justify-between hover:border-primary/45 transition-all shadow-md">
             <div>
@@ -127,6 +140,34 @@ export default function Home() {
                 className="flex items-center gap-1 text-accent hover:underline"
               >
                 Start Document Review <ArrowRight className="h-3 w-3" />
+              </Link>
+            </div>
+          </div>
+
+          {/* Know My Rights Card */}
+          <div className="rounded-lg border border-border bg-card p-6 flex flex-col justify-between hover:border-primary/45 transition-all shadow-md">
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-2 bg-secondary rounded border border-border text-primary">
+                  <ShieldAlert className="h-5 w-5" />
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-primary border border-primary/20 px-2 py-0.5 rounded">
+                  Module 03: Know Your Rights
+                </span>
+              </div>
+              <h2 className="text-lg font-bold text-foreground">
+                Know My Rights
+              </h2>
+              <p className="mt-2.5 text-xs text-muted-foreground leading-relaxed">
+                Understand your legal rights and responsibilities. Access guides, resources, and answers to common legal questions. Knowledge is your best defense.
+              </p>
+            </div>
+            <div className="mt-8 pt-4 border-t border-border/40 flex items-center text-xs font-medium">
+              <Link 
+                href="/know-my-rights" 
+                className="flex items-center gap-1 text-accent hover:underline"
+              >
+                Explore Your Rights <ArrowRight className="h-3 w-3" />
               </Link>
             </div>
           </div>

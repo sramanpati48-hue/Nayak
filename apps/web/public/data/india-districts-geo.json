@@ -1,0 +1,113 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Delhi",
+        "state": "Delhi",
+        "id": "delhi"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[77.0, 28.4], [77.3, 28.4], [77.3, 28.9], [77.0, 28.9], [77.0, 28.4]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Gautam Budh Nagar",
+        "state": "Uttar Pradesh",
+        "id": "gautam-budh-nagar"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[77.2, 28.3], [77.6, 28.3], [77.6, 28.7], [77.2, 28.7], [77.2, 28.3]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Mumbai",
+        "state": "Maharashtra",
+        "id": "mumbai"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[72.7, 18.8], [73.0, 18.8], [73.0, 19.3], [72.7, 19.3], [72.7, 18.8]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Thane",
+        "state": "Maharashtra",
+        "id": "thane"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[73.0, 19.0], [73.4, 19.0], [73.4, 19.5], [73.0, 19.5], [73.0, 19.0]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Chennai",
+        "state": "Tamil Nadu",
+        "id": "chennai"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[79.9, 12.9], [80.3, 12.9], [80.3, 13.3], [79.9, 13.3], [79.9, 12.9]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Kanchipuram",
+        "state": "Tamil Nadu",
+        "id": "kanchipuram"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[79.6, 12.8], [80.2, 12.8], [80.2, 13.2], [79.6, 13.2], [79.6, 12.8]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Bhopal",
+        "state": "Madhya Pradesh",
+        "id": "bhopal"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[77.8, 23.0], [78.2, 23.0], [78.2, 23.4], [77.8, 23.4], [77.8, 23.0]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Indore",
+        "state": "Madhya Pradesh",
+        "id": "indore"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[75.7, 22.5], [76.1, 22.5], [76.1, 23.0], [75.7, 23.0], [75.7, 22.5]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Kolkata",
+        "state": "West Bengal",
+        "id": "kolkata"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[88.3, 22.3], [88.5, 22.3], [88.5, 22.7], [88.3, 22.7], [88.3, 22.3]]]
+      }
+    }
+  ]
+}

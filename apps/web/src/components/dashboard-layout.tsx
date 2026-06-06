@@ -16,7 +16,8 @@ import {
   Briefcase,
   User,
   Shield,
-  Activity
+  Activity,
+  MapPin
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -36,6 +37,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       ]
     },
     { name: "VicharakBandhu (Review Documents)", href: "/vicharakbandhu", icon: BookOpen },
+    { name: "Case Heatmap", href: "/case-heatmap", icon: MapPin },
     { name: "Reports (My Case Summaries)", href: "/reports", icon: FileText },
     { name: "Settings", href: "/settings", icon: Settings },
   ];
