@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "./theme-toggle";
+import { useSessionContext } from "@/lib/session-context";
+import { getRoleSummary, getRoleLabel } from "@/lib/rbac";
 import { 
   Scale, 
   BookOpen, 
@@ -24,6 +26,7 @@ import { motion, AnimatePresence } from "framer-motion";
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { role } = useSessionContext();
 
   const navItems = [
     { name: "Home (My Dashboard)", href: "/", icon: LayoutDashboard },
@@ -65,8 +68,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             <User className="h-4 w-4" />
           </div>
           <div className="flex flex-col min-w-0">
-            <span className="text-xs font-semibold text-foreground truncate">Case Helper</span>
-            <span className="text-[10px] text-muted-foreground truncate">Personal Assistant</span>
+            <span className="text-xs font-semibold text-foreground truncate">{getRoleLabel(role)}</span>
+            <span className="text-[10px] text-muted-foreground truncate">{getRoleSummary(role)}</span>
           </div>
         </div>
 

@@ -3,7 +3,8 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
+  :root,
+  .dark {
     /* Murder Mystery Palette - Dark Burgundy and Black */
     --background: 0 0% 6%; /* Deep black background */
     --foreground: 0 0% 96%; /* Off-white primary text */
@@ -36,18 +37,34 @@
     --radius: 0.5rem;
   }
 
-  /* Force dark mode variables across the workspace for consistent styling */
   .light {
-    --background: 0 0% 6%;
-    --foreground: 0 0% 96%;
-    --card: 0 0% 10%;
-    --card-foreground: 0 0% 96%;
+    --background: 0 0% 98%;
+    --foreground: 0 0% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 10%;
+
     --primary: 0 100% 25%;
-    --secondary: 0 70% 15%;
-    --muted: 0 0% 20%;
-    --muted-foreground: 0 0% 60%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 0 20% 93%;
+    --secondary-foreground: 0 0% 15%;
+
+    --muted: 0 0% 92%;
+    --muted-foreground: 0 0% 42%;
+
     --accent: 0 80% 35%;
-    --border: 0 50% 18%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 100% 40%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 15% 85%;
+    --input: 0 15% 85%;
+    --ring: 0 100% 30%;
   }
 }
 
@@ -57,7 +74,6 @@
   }
   body {
     @apply bg-background text-foreground antialiased min-h-screen selection:bg-primary/20 selection:text-accent;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 }
 

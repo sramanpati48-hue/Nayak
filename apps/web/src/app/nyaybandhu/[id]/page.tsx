@@ -3,6 +3,9 @@
 import React, { useEffect, useState, useRef, use } from "react";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { useNyaybandhuStore, TranscriptEvent } from "@/store/nyaybandhu";
+import { buildSessionRequestQueryParams } from "@/lib/request-context";
+import { useSessionContext } from "@/lib/session-context";
+import { hasPermission, getRoleLabel, getRoleSummary } from "@/lib/rbac";
 import { 
   Scale, 
   Play, 
@@ -36,14 +39,18 @@ export default function SessionPage({ params }: PageProps) {
     answerCard,
     continueSession,
     finalizeSession,
+    addInternNote,
+    markLawyerReviewComplete,
     addEventStream
   } = useNyaybandhuStore();
+  const { role } = useSessionContext();
 
   const [streamingEvent, setStreamingEvent] = useState<Partial<TranscriptEvent> | null>(null);
   const [scores, setScores] = useState({ petitioner: 50, respondent: 50 });
   const [streamActive, setStreamActive] = useState(false);
   const [verdictReady, setVerdictReady] = useState(false);
   const [manualSafetyChecked, setManualSafetyChecked] = useState(false);
+  const [internNote, setInternNote] = useState("");
   
   const eventSourceRef = useRef<EventSource | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -74,6 +81,23 @@ export default function SessionPage({ params }: PageProps) {
     triggerDownload(markdown, filename);
   };
 
+  const canAnswerCrossQuestions = hasPermission(role, "answer_cross_questions");
+  const canExportReports = hasPermission(role, "export_reports");
+  const canAddInternNotes = hasPermission(role, "add_intern_notes");
+  const canMarkLawyerReviewComplete = hasPermission(role, "mark_lawyer_review_complete");
+  const canViewJudgeWorkspace = hasPermission(role, "view_judge_evaluation_workspace");
+  const canFinalizeSession = role === "normal_user" || canMarkLawyerReviewComplete;
+
+  const handleSaveInternNote = async () => {
+    if (!internNote.trim()) return;
+    await addInternNote(id, internNote.trim());
+    setInternNote("");
+  };
+
+  const handleMarkReviewComplete = async () => {
+    await markLawyerReviewComplete(id, activeSession?.summary);
+  };
+
   // Connect to SSE stream
   const startStream = () => {
     if (eventSourceRef.current) {
@@ -84,7 +108,8 @@ export default function SessionPage({ params }: PageProps) {
     setStreamingEvent(null);
     
     const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
-    const es = new EventSource(`${API_BASE_URL}/nyaybandhu/sessions/${id}/stream`);
+    const query = buildSessionRequestQueryParams().toString();
+    const es = new EventSource(`${API_BASE_URL}/nyaybandhu/sessions/${id}/stream?${query}`);
     eventSourceRef.current = es;
 
     es.addEventListener("turn_started", (e: any) => {
@@ -182,6 +207,9 @@ export default function SessionPage({ params }: PageProps) {
     (e) => e.event_type === "clarification_request" && e.card_data && !e.card_data.answered
   );
 
+  const rbacConfig = activeSession.config?.rbac || {};
+  const internNotes = Array.isArray(rbacConfig.intern_notes) ? rbacConfig.intern_notes : [];
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -208,25 +236,35 @@ export default function SessionPage({ params }: PageProps) {
             <p className="text-xs text-muted-foreground">
               Opposing Strategy Style: {activeSession.opposing_counsel_strategy === "textualist" ? "Strictly by the book (literal)" : activeSession.opposing_counsel_strategy === "pragmatist" ? "Practical/Purpose-oriented" : "Based on past cases (precedents)"}
             </p>
+            <div className="rounded border border-border/60 bg-secondary/20 px-3 py-2 text-[11px] text-muted-foreground">
+              <span className="font-semibold text-foreground block">{getRoleLabel(role)}</span>
+              <span>{getRoleSummary(role)}</span>
+            </div>
           </div>
 
           {/* Action Control Panel */}
           {activeSession.status === "active" && !streamActive && (
             <div className="flex items-center gap-2">
-              {pendingCard ? (
+              {canViewJudgeWorkspace ? (
+                <span className="text-[10px] text-foreground font-semibold bg-secondary/40 px-2 py-1.5 rounded border border-border/60">
+                  Judge workspace is read-only. Review the record and supporting summary below.
+                </span>
+              ) : pendingCard && canAnswerCrossQuestions ? (
                 <span className="text-[10px] text-amber-500 font-semibold bg-amber-500/10 px-2 py-1.5 rounded border border-amber-500/20 flex items-center gap-1.5">
                   <AlertTriangle className="h-3.5 w-3.5" />
                   Answer the question below to proceed
                 </span>
               ) : verdictReady || activeEvents.length >= 7 ? (
-                <button
-                  onClick={() => finalizeSession(id)}
-                  className="inline-flex items-center justify-center gap-2 rounded bg-primary text-primary-foreground hover:bg-primary/95 text-xs font-semibold h-9 px-5 shadow-sm transition-colors border border-primary/30"
-                >
-                  <CheckCircle2 className="h-4 w-4" />
-                  <span>{activeSession.mode === "real-life" ? "Get Case Guidance Report" : "Show Case Summary & Analysis"}</span>
-                </button>
-              ) : (
+                canFinalizeSession ? (
+                  <button
+                    onClick={canMarkLawyerReviewComplete ? handleMarkReviewComplete : () => finalizeSession(id)}
+                    className="inline-flex items-center justify-center gap-2 rounded bg-primary text-primary-foreground hover:bg-primary/95 text-xs font-semibold h-9 px-5 shadow-sm transition-colors border border-primary/30"
+                  >
+                    <CheckCircle2 className="h-4 w-4" />
+                    <span>{canMarkLawyerReviewComplete ? "Mark Lawyer Review Complete" : activeSession.mode === "real-life" ? "Get Case Guidance Report" : "Show Case Summary & Analysis"}</span>
+                  </button>
+                ) : null
+              ) : canAnswerCrossQuestions ? (
                 <button
                   onClick={startStream}
                   className="inline-flex items-center justify-center gap-2 rounded bg-primary text-primary-foreground hover:bg-primary/95 text-xs font-semibold h-9 px-5 shadow-sm transition-colors border border-primary/30"
@@ -234,7 +272,7 @@ export default function SessionPage({ params }: PageProps) {
                   <Play className="h-4 w-4" />
                   <span>{activeEvents.length <= 1 ? "Start Case Review" : "Continue Case Review"}</span>
                 </button>
-              )}
+              ) : null}
             </div>
           )}
         </div>
@@ -273,13 +311,15 @@ export default function SessionPage({ params }: PageProps) {
                       }`}>
                         Urgency: {parsedSummary.urgency_level}
                       </span>
-                      <button
-                        onClick={handleExportGuidanceReport}
-                        className="text-[10px] uppercase font-bold px-2 py-1 bg-primary text-primary-foreground hover:bg-primary/90 rounded inline-flex items-center gap-1 transition-all"
-                      >
-                        <Download className="h-3 w-3" />
-                        <span>Export Guidance Report</span>
-                      </button>
+                      {canExportReports && (
+                        <button
+                          onClick={handleExportGuidanceReport}
+                          className="text-[10px] uppercase font-bold px-2 py-1 bg-primary text-primary-foreground hover:bg-primary/90 rounded inline-flex items-center gap-1 transition-all"
+                        >
+                          <Download className="h-3 w-3" />
+                          <span>Export Guidance Report</span>
+                        </button>
+                      )}
                     </div>
                   </div>
 
@@ -583,6 +623,52 @@ export default function SessionPage({ params }: PageProps) {
                       <span>Urgency: {parsedSummary.urgency_level || "Not assessed"}</span>
                       <span>Safety Flag: {parsedSummary.safety_flag ? "Yes" : "No"}</span>
                     </div>
+
+                    {canAddInternNotes && (
+                      <div className="space-y-2 rounded-lg border border-primary/20 bg-primary/5 p-4">
+                        <span className="font-semibold text-foreground text-xs uppercase tracking-wider block">Intern Notes</span>
+                        <p className="text-[11px] text-muted-foreground">
+                          Record short case observations for the supervising lawyer. Notes are stored with the case record.
+                        </p>
+                        <textarea
+                          value={internNote}
+                          onChange={(e) => setInternNote(e.target.value)}
+                          rows={3}
+                          className="w-full rounded border border-border bg-card p-3 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                          placeholder="Summarize a discrepancy, missing document, or follow-up question..."
+                        />
+                        <button
+                          type="button"
+                          onClick={handleSaveInternNote}
+                          className="inline-flex items-center justify-center rounded bg-primary text-primary-foreground hover:bg-primary/95 text-xs font-semibold h-9 px-4"
+                        >
+                          Save Intern Note
+                        </button>
+                        {internNotes.length > 0 && (
+                          <div className="space-y-2 pt-2 border-t border-border/40">
+                            {internNotes.map((note: any) => (
+                              <div key={note.id} className="rounded border border-border/60 bg-card p-3 text-xs text-muted-foreground">
+                                <p className="font-semibold text-foreground">{note.note}</p>
+                                <p className="mt-1 text-[10px] uppercase tracking-wider">{note.author_role} • {new Date(note.created_at).toLocaleString()}</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {canViewJudgeWorkspace && (
+                      <div className="space-y-2 rounded-lg border border-amber-500/20 bg-amber-500/5 p-4">
+                        <span className="font-semibold text-foreground text-xs uppercase tracking-wider block">Judge Evaluation Workspace</span>
+                        <p className="text-[11px] text-muted-foreground leading-relaxed">
+                          This area is intentionally read-only. It surfaces the current record, structured notes, and report state without suggesting that the system is making a judicial decision.
+                        </p>
+                        <div className="text-[11px] text-muted-foreground space-y-1">
+                          <p><span className="font-semibold text-foreground">Assigned roles:</span> {(rbacConfig.assigned_roles || []).join(", ") || "law_intern, lawyer, judge"}</p>
+                          <p><span className="font-semibold text-foreground">Lawyer review complete:</span> {rbacConfig.lawyer_review_complete ? "Yes" : "No"}</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -603,13 +689,15 @@ export default function SessionPage({ params }: PageProps) {
                     <span className="text-xs px-2.5 py-1 rounded bg-primary/20 border border-primary/30 text-primary font-bold">
                       Summary Ready
                     </span>
-                    <button
-                      onClick={handleExportGuidanceReport}
-                      className="text-[10px] uppercase font-bold px-2 py-1 bg-primary text-primary-foreground hover:bg-primary/90 rounded inline-flex items-center gap-1 transition-all"
-                    >
-                      <Download className="h-3 w-3" />
-                      <span>Export Guidance Report</span>
-                    </button>
+                    {canExportReports && (
+                      <button
+                        onClick={handleExportGuidanceReport}
+                        className="text-[10px] uppercase font-bold px-2 py-1 bg-primary text-primary-foreground hover:bg-primary/90 rounded inline-flex items-center gap-1 transition-all"
+                      >
+                        <Download className="h-3 w-3" />
+                        <span>Export Guidance Report</span>
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -871,12 +959,12 @@ export default function SessionPage({ params }: PageProps) {
                                         return (
                                           <button
                                             key={oIdx}
-                                            disabled={isAnswered || streamActive}
+                                            disabled={isAnswered || streamActive || !canAnswerCrossQuestions}
                                             onClick={() => answerCard(id, event.id, opt)}
                                             className={`w-full p-2.5 rounded border text-left text-xs transition-all ${
                                               isSelected
                                                 ? "border-primary bg-primary/10 text-accent font-semibold"
-                                                : isAnswered
+                                                : isAnswered || !canAnswerCrossQuestions
                                                   ? "border-border/40 text-muted-foreground bg-secondary/5 cursor-not-allowed"
                                                   : "border-border/60 hover:bg-secondary/40 text-muted-foreground hover:text-foreground bg-card"
                                             }`}
@@ -1018,7 +1106,7 @@ export default function SessionPage({ params }: PageProps) {
                         </p>
                       </div>
                     </div>
-                    
+
                     <div className="border-t border-red-500/20 pt-2.5 space-y-2">
                       <span className="font-semibold text-foreground block text-[9px] uppercase tracking-wide">Emergency Helplines (India)</span>
                       <div className="grid grid-cols-2 gap-2 text-[10px]">
@@ -1039,6 +1127,58 @@ export default function SessionPage({ params }: PageProps) {
                           <span className="font-extrabold text-foreground text-xs">1930</span>
                         </div>
                       </div>
+                    </div>
+                  </div>
+                )}
+
+                {canAddInternNotes && (
+                  <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-3 text-xs">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-bold text-foreground uppercase tracking-wider">Intern Notes</span>
+                      <span className="text-[9px] uppercase tracking-wider text-primary">Review support</span>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                      Capture short observations, missing documents, or follow-up questions for the supervising lawyer.
+                    </p>
+                    <textarea
+                      value={internNote}
+                      onChange={(e) => setInternNote(e.target.value)}
+                      rows={3}
+                      className="w-full rounded border border-border bg-card p-3 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                      placeholder="Summarize a discrepancy, missing document, or follow-up question..."
+                    />
+                    <button
+                      type="button"
+                      onClick={handleSaveInternNote}
+                      className="inline-flex items-center justify-center rounded bg-primary text-primary-foreground hover:bg-primary/95 text-xs font-semibold h-9 px-4"
+                    >
+                      Save Intern Note
+                    </button>
+                    {internNotes.length > 0 && (
+                      <div className="space-y-2 pt-2 border-t border-border/40">
+                        {internNotes.map((note: any) => (
+                          <div key={note.id} className="rounded border border-border/60 bg-card p-3 text-xs text-muted-foreground">
+                            <p className="font-semibold text-foreground">{note.note}</p>
+                            <p className="mt-1 text-[10px] uppercase tracking-wider">{note.author_role} • {new Date(note.created_at).toLocaleString()}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {canViewJudgeWorkspace && (
+                  <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4 space-y-3 text-xs">
+                    <div className="flex items-center gap-2">
+                      <ShieldCheck className="h-4 w-4 text-primary" />
+                      <span className="font-bold text-foreground uppercase tracking-wider">Judge Evaluation Workspace</span>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                      This area is read-only. It surfaces the record and structured notes without implying that the system is making a judicial decision.
+                    </p>
+                    <div className="text-[11px] text-muted-foreground space-y-1">
+                      <p><span className="font-semibold text-foreground">Assigned roles:</span> {(rbacConfig.assigned_roles || []).join(", ") || "law_intern, lawyer, judge"}</p>
+                      <p><span className="font-semibold text-foreground">Lawyer review complete:</span> {rbacConfig.lawyer_review_complete ? "Yes" : "No"}</p>
                     </div>
                   </div>
                 )}

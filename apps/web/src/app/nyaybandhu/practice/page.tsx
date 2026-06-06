@@ -5,10 +5,14 @@ import { useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { useNyaybandhuStore } from "@/store/nyaybandhu";
 import { Play, ShieldAlert, Scale, Loader2 } from "lucide-react";
+import { useSessionContext } from "@/lib/session-context";
+import { hasPermission, getRoleLabel, getRoleSummary } from "@/lib/rbac";
 
 export default function SimulationArenaIntake() {
   const router = useRouter();
   const { createSession } = useNyaybandhuStore();
+  const { role } = useSessionContext();
+  const canCreateCase = hasPermission(role, "create_case");
   
   const [title, setTitle] = useState("Case Arguments Practice - Case A");
   const [description, setDescription] = useState("");
@@ -34,6 +38,21 @@ export default function SimulationArenaIntake() {
   return (
     <DashboardLayout>
       <div className="space-y-6 max-w-2xl">
+        {!canCreateCase ? (
+          <div className="rounded-lg border border-border bg-card p-6 space-y-3">
+            <div className="flex items-center gap-2 text-primary font-semibold text-sm">
+              <Scale className="h-4 w-4" />
+              <span>{getRoleLabel(role)} access</span>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              {getRoleSummary(role)} This role is routed to assigned-case review workspaces rather than starting a new case intake.
+            </p>
+            <p className="text-[11px] text-muted-foreground">
+              Open an assigned session from the Nyaybandhu history list or return to the dashboard.
+            </p>
+          </div>
+        ) : null}
+
         {/* Header */}
         <div className="border-b border-border pb-4 space-y-1">
           <span className="text-[10px] uppercase font-bold tracking-widest text-primary">Nyaybandhu Intake</span>
@@ -46,8 +65,22 @@ export default function SimulationArenaIntake() {
           </p>
         </div>
 
-        {/* Intake Form */}
-        <form onSubmit={handleSubmit} className="space-y-5 bg-card border border-border p-6 rounded-lg shadow-sm">
+        {!canCreateCase ? (
+          <div className="space-y-3 rounded-lg border border-border bg-card p-6">
+            <div className="flex items-center gap-2 text-primary font-semibold text-sm">
+              <Scale className="h-4 w-4" />
+              <span>{getRoleLabel(role)} access</span>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              {getRoleSummary(role)} This role is routed to assigned-case review workspaces rather than new case intake.
+            </p>
+            <p className="text-[11px] text-muted-foreground">
+              Open an assigned session from the Nyaybandhu history table to review notes, cross-questions, or evaluation summaries.
+            </p>
+          </div>
+        ) : (
+          /* Intake Form */
+          <form onSubmit={handleSubmit} className="space-y-5 bg-card border border-border p-6 rounded-lg shadow-sm">
           {error && (
             <div className="p-3 bg-destructive/10 border border-destructive/20 rounded text-xs text-destructive-foreground">
               {error}
@@ -126,7 +159,8 @@ export default function SimulationArenaIntake() {
               )}
             </button>
           </div>
-        </form>
+          </form>
+        )}
       </div>
     </DashboardLayout>
   );

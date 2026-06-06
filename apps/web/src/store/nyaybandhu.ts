@@ -1,4 +1,6 @@
 import { create } from "zustand";
+import { buildSessionRequestHeaders } from "@/lib/request-context";
+import { getStoredSessionContext } from "@/lib/session-context";
 
 export interface NyaybandhuSession {
   id: string;
@@ -10,6 +12,7 @@ export interface NyaybandhuSession {
   summary?: string;
   verdict?: string;
   created_at: string;
+  config?: Record<string, any>;
 }
 
 export interface TranscriptEvent {
@@ -46,12 +49,32 @@ interface NyaybandhuState {
   answerCard: (sessionId: string, cardId: string, selectedOption: string) => Promise<void>;
   continueSession: (sessionId: string) => Promise<void>;
   finalizeSession: (sessionId: string) => Promise<void>;
+  addInternNote: (sessionId: string, note: string) => Promise<void>;
+  markLawyerReviewComplete: (sessionId: string, summary?: string) => Promise<void>;
   fetchHistory: () => Promise<void>;
   addEventStream: (event: TranscriptEvent) => void;
   clearEvents: () => void;
 }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+
+function buildSessionConfig(title: string, description: string, mode: string, opposingCounselStrategy: string) {
+  const { role, userId } = getStoredSessionContext();
+
+  return {
+    title,
+    description,
+    mode,
+    opposing_counsel_strategy: opposingCounselStrategy,
+    config: {
+      rbac: {
+        creator_user_id: userId,
+        creator_role: role,
+        assigned_roles: role === "normal_user" ? ["law_intern", "lawyer", "judge"] : [role],
+      },
+    },
+  };
+}
 
 export const useNyaybandhuStore = create<NyaybandhuState>((set, get) => ({
   sessions: [],
@@ -65,8 +88,11 @@ export const useNyaybandhuStore = create<NyaybandhuState>((set, get) => ({
     try {
       const res = await fetch(`${API_BASE_URL}/nyaybandhu/sessions`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, description, mode, opposing_counsel_strategy }),
+        headers: {
+          "Content-Type": "application/json",
+          ...buildSessionRequestHeaders(),
+        },
+        body: JSON.stringify(buildSessionConfig(title, description, mode, opposing_counsel_strategy)),
       });
       if (!res.ok) throw new Error("Failed to initialize session");
       const data: NyaybandhuSession = await res.json();
@@ -85,7 +111,10 @@ export const useNyaybandhuStore = create<NyaybandhuState>((set, get) => ({
   fetchSessionDetails: async (id) => {
     set({ loading: true, error: null });
     try {
-      const res = await fetch(`${API_BASE_URL}/nyaybandhu/sessions/${id}`, { cache: "no-store" });
+      const res = await fetch(`${API_BASE_URL}/nyaybandhu/sessions/${id}`, {
+        cache: "no-store",
+        headers: buildSessionRequestHeaders(),
+      });
       if (!res.ok) throw new Error("Session details not found");
       const data = await res.json();
       set({ 
@@ -102,7 +131,10 @@ export const useNyaybandhuStore = create<NyaybandhuState>((set, get) => ({
     try {
       const res = await fetch(`${API_BASE_URL}/nyaybandhu/sessions/${sessionId}/answer`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...buildSessionRequestHeaders(),
+        },
         body: JSON.stringify({ card_id: cardId, selected_option: selectedOption }),
       });
       if (!res.ok) throw new Error("Failed to submit clarification choice");
@@ -117,7 +149,8 @@ export const useNyaybandhuStore = create<NyaybandhuState>((set, get) => ({
   continueSession: async (sessionId) => {
     try {
       const res = await fetch(`${API_BASE_URL}/nyaybandhu/sessions/${sessionId}/continue`, {
-        method: "POST"
+        method: "POST",
+        headers: buildSessionRequestHeaders(),
       });
       if (!res.ok) throw new Error("Failed to trigger session continuation");
       // Re-fetch details to sync the state
@@ -131,9 +164,48 @@ export const useNyaybandhuStore = create<NyaybandhuState>((set, get) => ({
     set({ loading: true, error: null });
     try {
       const res = await fetch(`${API_BASE_URL}/nyaybandhu/sessions/${sessionId}/finalize`, {
-        method: "POST"
+        method: "POST",
+        headers: buildSessionRequestHeaders(),
       });
       if (!res.ok) throw new Error("Failed to compile final review");
+      const data = await res.json();
+      set({ activeSession: data, loading: false });
+    } catch (err: any) {
+      set({ error: err.message, loading: false });
+    }
+  },
+
+  addInternNote: async (sessionId, note) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/nyaybandhu/sessions/${sessionId}/intern-notes`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...buildSessionRequestHeaders(),
+        },
+        body: JSON.stringify({ note }),
+      });
+
+      if (!res.ok) throw new Error("Failed to save intern note");
+      await get().fetchSessionDetails(sessionId);
+    } catch (err: any) {
+      set({ error: err.message });
+    }
+  },
+
+  markLawyerReviewComplete: async (sessionId, summary) => {
+    set({ loading: true, error: null });
+    try {
+      const res = await fetch(`${API_BASE_URL}/nyaybandhu/sessions/${sessionId}/lawyer-review-complete`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...buildSessionRequestHeaders(),
+        },
+        body: JSON.stringify({ summary }),
+      });
+
+      if (!res.ok) throw new Error("Failed to mark lawyer review complete");
       const data = await res.json();
       set({ activeSession: data, loading: false });
     } catch (err: any) {
@@ -144,7 +216,10 @@ export const useNyaybandhuStore = create<NyaybandhuState>((set, get) => ({
   fetchHistory: async () => {
     set({ loading: true, error: null });
     try {
-      const res = await fetch(`${API_BASE_URL}/nyaybandhu/history`, { cache: "no-store" });
+      const res = await fetch(`${API_BASE_URL}/nyaybandhu/history`, {
+        cache: "no-store",
+        headers: buildSessionRequestHeaders(),
+      });
       if (!res.ok) throw new Error("Failed to fetch historical session logs");
       const data = await res.json();
       set({ sessions: data, loading: false });

@@ -2,12 +2,33 @@ import asyncio
 import json
 import uuid
 from datetime import datetime
-from typing import AsyncGenerator, List, Optional
+from typing import Any, AsyncGenerator, List, Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.models import NyaybandhuSession, TranscriptEvent
+from app.core.rbac import DEFAULT_REVIEW_ROLES, RequestActor, has_permission
 
 class NyaybandhuService:
+    @staticmethod
+    def _normalize_access_config(config: Optional[dict], actor: RequestActor) -> dict:
+        access_config: dict[str, Any] = dict(config or {})
+        rbac_config = access_config.get("rbac") if isinstance(access_config.get("rbac"), dict) else {}
+
+        assigned_roles = rbac_config.get("assigned_roles")
+        if not isinstance(assigned_roles, list) or not assigned_roles:
+            assigned_roles = list(DEFAULT_REVIEW_ROLES)
+        else:
+            assigned_roles = [role for role in assigned_roles if role in DEFAULT_REVIEW_ROLES]
+            if not assigned_roles:
+                assigned_roles = list(DEFAULT_REVIEW_ROLES)
+
+        access_config["rbac"] = {
+            "creator_user_id": actor.user_id,
+            "creator_role": actor.role,
+            "assigned_roles": assigned_roles,
+        }
+        return access_config
+
     @staticmethod
     def analyze_real_life_case(description: str, title: str) -> dict:
         desc_lower = description.lower() if description else ""
@@ -372,8 +393,9 @@ class NyaybandhuService:
         }
 
     @staticmethod
-    async def create_session(db: AsyncSession, title: str, description: Optional[str], mode: str, opposing_counsel_strategy: str, config: Optional[dict] = None) -> NyaybandhuSession:
+    async def create_session(db: AsyncSession, title: str, description: Optional[str], mode: str, opposing_counsel_strategy: str, config: Optional[dict] = None, actor: Optional[RequestActor] = None) -> NyaybandhuSession:
         session_id = str(uuid.uuid4())
+        access_actor = actor or RequestActor(user_id="anonymous", role="normal_user")
         session = NyaybandhuSession(
             id=session_id,
             title=title,
@@ -382,7 +404,7 @@ class NyaybandhuService:
             opposing_counsel_strategy=opposing_counsel_strategy,
             status="active",
             created_at=datetime.utcnow(),
-            config=config
+            config=NyaybandhuService._normalize_access_config(config, access_actor),
         )
         db.add(session)
         
@@ -408,9 +430,19 @@ class NyaybandhuService:
         return result.scalar_one_or_none()
 
     @staticmethod
-    async def list_history(db: AsyncSession) -> List[NyaybandhuSession]:
+    async def list_history(db: AsyncSession, actor: RequestActor) -> List[NyaybandhuSession]:
         result = await db.execute(select(NyaybandhuSession).order_by(NyaybandhuSession.created_at.desc()))
-        return list(result.scalars().all())
+        sessions = list(result.scalars().all())
+
+        if actor.role == "normal_user":
+            return [session for session in sessions if (session.config or {}).get("rbac", {}).get("creator_user_id") == actor.user_id]
+
+        return [
+            session
+            for session in sessions
+            if actor.role in ((session.config or {}).get("rbac", {}).get("assigned_roles") or list(DEFAULT_REVIEW_ROLES))
+            or (session.config or {}).get("rbac", {}).get("creator_user_id") == actor.user_id
+        ]
 
     @staticmethod
     async def get_events(db: AsyncSession, session_id: str) -> List[TranscriptEvent]:
@@ -467,6 +499,13 @@ class NyaybandhuService:
             raise ValueError("Session not found")
             
         session.status = "finalized"
+
+        config = dict(session.config or {})
+        rbac_config = dict(config.get("rbac") or {})
+        if rbac_config.get("creator_role") == "lawyer":
+            rbac_config["lawyer_review_complete"] = True
+        config["rbac"] = rbac_config
+        session.config = config
         
         if session.mode == "real-life":
             analysis = NyaybandhuService.analyze_real_life_case(session.description, session.title)
@@ -487,6 +526,55 @@ class NyaybandhuService:
                 "Petitioner's Article 14 challenge is deemed viable but subject to demographic burden of proof."
             )
             
+        await db.commit()
+        await db.refresh(session)
+        return session
+
+    @staticmethod
+    async def add_intern_note(db: AsyncSession, session_id: str, note: str, actor: RequestActor) -> NyaybandhuSession:
+        result = await db.execute(select(NyaybandhuSession).where(NyaybandhuSession.id == session_id))
+        session = result.scalar_one_or_none()
+        if not session:
+            raise ValueError("Session not found")
+
+        config = dict(session.config or {})
+        rbac_config = dict(config.get("rbac") or {})
+        intern_notes = list(rbac_config.get("intern_notes") or [])
+        intern_notes.append(
+            {
+                "id": str(uuid.uuid4()),
+                "note": note,
+                "author_role": actor.role,
+                "author_user_id": actor.user_id,
+                "created_at": datetime.utcnow().isoformat(),
+            }
+        )
+        rbac_config["intern_notes"] = intern_notes
+        config["rbac"] = rbac_config
+        session.config = config
+
+        await db.commit()
+        await db.refresh(session)
+        return session
+
+    @staticmethod
+    async def mark_lawyer_review_complete(db: AsyncSession, session_id: str, summary: Optional[str], actor: RequestActor) -> NyaybandhuSession:
+        result = await db.execute(select(NyaybandhuSession).where(NyaybandhuSession.id == session_id))
+        session = result.scalar_one_or_none()
+        if not session:
+            raise ValueError("Session not found")
+
+        session = await NyaybandhuService.finalize_session(db, session_id)
+        config = dict(session.config or {})
+        rbac_config = dict(config.get("rbac") or {})
+        rbac_config["lawyer_review_complete"] = True
+        rbac_config["lawyer_review_completed_by"] = actor.user_id
+        rbac_config["lawyer_review_completed_at"] = datetime.utcnow().isoformat()
+        if summary:
+            rbac_config["lawyer_review_summary"] = summary
+        config["rbac"] = rbac_config
+        session.config = config
+
         await db.commit()
         await db.refresh(session)
         return session

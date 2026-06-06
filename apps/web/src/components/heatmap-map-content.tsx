@@ -176,7 +176,7 @@ export default function HeatmapMapContent() {
             border: 2px solid ${color};
             box-shadow: 0 2px 6px rgba(0,0,0,0.6);
             backdrop-filter: blur(4px);
-            font-family: system-ui, -apple-system, sans-serif;
+            font-family: var(--font-poppins), system-ui, sans-serif;
           ">
             <div>${districtName}</div>
             <div style="font-size: 11px; color: ${color}; margin-top: 3px; font-weight: bold;">${data.caseCount} cases</div>
@@ -277,7 +277,7 @@ export default function HeatmapMapContent() {
       {/* Custom CSS for enhanced visuals */}
       <style>{`
         .chunk-based-map {
-          font-family: system-ui, -apple-system, sans-serif;
+          font-family: var(--font-poppins), system-ui, sans-serif;
         }
         
         .district-label {
@@ -286,7 +286,7 @@ export default function HeatmapMapContent() {
 
         .custom-popup .leaflet-popup-content {
           margin: 0;
-          font-family: system-ui, -apple-system, sans-serif;
+          font-family: var(--font-poppins), system-ui, sans-serif;
         }
 
         .leaflet-popup-content-wrapper {

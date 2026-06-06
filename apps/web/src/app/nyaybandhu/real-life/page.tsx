@@ -5,10 +5,14 @@ import { useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { useNyaybandhuStore } from "@/store/nyaybandhu";
 import { Briefcase, ShieldAlert, FolderPlus, Loader2 } from "lucide-react";
+import { useSessionContext } from "@/lib/session-context";
+import { hasPermission, getRoleLabel, getRoleSummary } from "@/lib/rbac";
 
 export default function LiveCaseAnalysisIntake() {
   const router = useRouter();
   const { createSession } = useNyaybandhuStore();
+  const { role } = useSessionContext();
+  const canCreateCase = hasPermission(role, "create_case");
 
   const [title, setTitle] = useState("Real Case Review - Case 402");
   const [description, setDescription] = useState("");
@@ -38,6 +42,18 @@ export default function LiveCaseAnalysisIntake() {
   return (
     <DashboardLayout>
       <div className="space-y-6 max-w-2xl text-left">
+        {!canCreateCase ? (
+          <div className="rounded-lg border border-border bg-card p-6 space-y-3">
+            <div className="flex items-center gap-2 text-primary font-semibold text-sm">
+              <Briefcase className="h-4 w-4" />
+              <span>{getRoleLabel(role)} access</span>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              {getRoleSummary(role)} This view is locked for case creation, but assigned-case review tools remain available from the workspace history.
+            </p>
+          </div>
+        ) : null}
+
         {/* Header */}
         <div className="border-b border-border pb-4 space-y-1">
           <span className="text-[10px] uppercase font-bold tracking-widest text-primary">Real Case Review</span>
@@ -59,8 +75,19 @@ export default function LiveCaseAnalysisIntake() {
           </div>
         </div>
 
-        {/* Intake Form */}
-        <form onSubmit={handleSubmit} className="space-y-5 bg-card border border-border p-6 rounded-lg shadow-sm">
+        {!canCreateCase ? (
+          <div className="space-y-3 rounded-lg border border-border bg-card p-6">
+            <div className="flex items-center gap-2 text-primary font-semibold text-sm">
+              <Briefcase className="h-4 w-4" />
+              <span>{getRoleLabel(role)} access</span>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              {getRoleSummary(role)} This role is routed to assigned-case review workspaces rather than new case intake.
+            </p>
+          </div>
+        ) : (
+          /* Intake Form */
+          <form onSubmit={handleSubmit} className="space-y-5 bg-card border border-border p-6 rounded-lg shadow-sm">
           {error && (
             <div className="space-y-3">
               <div className="p-3 bg-destructive/10 border border-destructive/20 rounded text-xs text-destructive-foreground space-y-1">
@@ -183,7 +210,8 @@ export default function LiveCaseAnalysisIntake() {
               )}
             </button>
           </div>
-        </form>
+          </form>
+        )}
       </div>
     </DashboardLayout>
   );

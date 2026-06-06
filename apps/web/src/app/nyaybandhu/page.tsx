@@ -5,9 +5,13 @@ import Link from "next/link";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { useNyaybandhuStore } from "@/store/nyaybandhu";
 import { Scale, Play, Briefcase, Info, History } from "lucide-react";
+import { useSessionContext } from "@/lib/session-context";
+import { hasPermission, getRoleLabel, getRoleSummary } from "@/lib/rbac";
 
 export default function NyaybandhuDashboard() {
   const { sessions, fetchHistory, loading } = useNyaybandhuStore();
+  const { role } = useSessionContext();
+  const canCreateCase = hasPermission(role, "create_case");
 
   useEffect(() => {
     fetchHistory();
@@ -26,6 +30,10 @@ export default function NyaybandhuDashboard() {
           <p className="text-muted-foreground max-w-[800px] text-sm">
             Look at case arguments from both your side and the other side. Try out different arguments in a practice arena or spot gaps in your current case papers.
           </p>
+          <div className="rounded border border-border/70 bg-secondary/20 p-3 text-xs text-muted-foreground">
+            <span className="font-semibold text-foreground block">{getRoleLabel(role)} workspace</span>
+            <span>{getRoleSummary(role)}</span>
+          </div>
         </div>
 
         {/* Operational Overview Callout */}
@@ -38,51 +46,63 @@ export default function NyaybandhuDashboard() {
         </div>
 
         {/* Navigation / Selection Grid */}
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* Simulation Card */}
-          <div className="rounded-lg border border-border bg-card p-6 flex flex-col justify-between hover:border-primary/30 transition-all">
-            <div>
-              <div className="flex items-center gap-2 text-primary font-semibold text-sm mb-3">
-                <Play className="h-4 w-4" />
-                <span>Practice Arena</span>
+        {canCreateCase ? (
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* Simulation Card */}
+            <div className="rounded-lg border border-border bg-card p-6 flex flex-col justify-between hover:border-primary/30 transition-all">
+              <div>
+                <div className="flex items-center gap-2 text-primary font-semibold text-sm mb-3">
+                  <Play className="h-4 w-4" />
+                  <span>Practice Arena</span>
+                </div>
+                <h3 className="text-base font-bold text-foreground">Test arguments in a safe space</h3>
+                <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
+                  Test your arguments, see how they hold up against strictly literal or dynamic reasoning, and keep a log of the discussion.
+                </p>
               </div>
-              <h3 className="text-base font-bold text-foreground">Test arguments in a safe space</h3>
-              <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
-                Test your arguments, see how they hold up against strictly literal or dynamic reasoning, and keep a log of the discussion.
-              </p>
+              <div className="mt-6">
+                <Link
+                  href="/nyaybandhu/practice"
+                  className="inline-flex items-center justify-center rounded bg-primary text-primary-foreground hover:bg-primary/95 text-xs font-semibold h-9 px-4 w-full transition-colors"
+                >
+                  Open Practice Arena
+                </Link>
+              </div>
             </div>
-            <div className="mt-6">
-              <Link
-                href="/nyaybandhu/practice"
-                className="inline-flex items-center justify-center rounded bg-primary text-primary-foreground hover:bg-primary/95 text-xs font-semibold h-9 px-4 w-full transition-colors"
-              >
-                Open Practice Arena
-              </Link>
-            </div>
-          </div>
 
-          {/* Live Case Card */}
-          <div className="rounded-lg border border-border bg-card p-6 flex flex-col justify-between hover:border-primary/30 transition-all">
-            <div>
-              <div className="flex items-center gap-2 text-primary font-semibold text-sm mb-3">
-                <Briefcase className="h-4 w-4" />
-                <span>Tell Us What Happened</span>
+            {/* Live Case Card */}
+            <div className="rounded-lg border border-border bg-card p-6 flex flex-col justify-between hover:border-primary/30 transition-all">
+              <div>
+                <div className="flex items-center gap-2 text-primary font-semibold text-sm mb-3">
+                  <Briefcase className="h-4 w-4" />
+                  <span>Tell Us What Happened</span>
+                </div>
+                <h3 className="text-base font-bold text-foreground">Review a real-life issue</h3>
+                <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
+                  Describe a real-life concern (like rent disputes, cheating, harassment, or agreements) in simple words. Get a two-sided review and a guidance report.
+                </p>
               </div>
-              <h3 className="text-base font-bold text-foreground">Review a real-life issue</h3>
-              <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
-                Describe a real-life concern (like rent disputes, cheating, harassment, or agreements) in simple words. Get a two-sided review and a guidance report.
-              </p>
-            </div>
-            <div className="mt-6">
-              <Link
-                href="/nyaybandhu/real-life"
-                className="inline-flex items-center justify-center rounded bg-primary text-primary-foreground hover:bg-primary/95 text-xs font-semibold h-9 px-4 w-full transition-colors"
-              >
-                Review a Real Case
-              </Link>
+              <div className="mt-6">
+                <Link
+                  href="/nyaybandhu/real-life"
+                  className="inline-flex items-center justify-center rounded bg-primary text-primary-foreground hover:bg-primary/95 text-xs font-semibold h-9 px-4 w-full transition-colors"
+                >
+                  Review a Real Case
+                </Link>
+              </div>
             </div>
           </div>
-        </div>
+        ) : (
+          <div className="rounded-lg border border-border bg-card p-6 space-y-3">
+            <div className="flex items-center gap-2 text-primary font-semibold text-sm">
+              <Scale className="h-4 w-4" />
+              <span>Read-only review workspace</span>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              This role does not create new cases. Open an assigned case from the history table below to review notes, cross-questions, or the judge evaluation view.
+            </p>
+          </div>
+        )}
 
         {/* Recent Session History Panel */}
         <div className="rounded-lg border border-border bg-card p-5">
