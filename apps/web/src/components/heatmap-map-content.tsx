@@ -235,17 +235,17 @@ export default function HeatmapMapContent() {
 
     // Enhanced hover effects
     layer.on("mouseover", function () {
-      this.setStyle({
+      layer.setStyle({
         weight: 4,
         opacity: 1,
         fillOpacity: 0.85,
         color: "#ffff00", // Yellow highlight on hover
       });
-      this.bringToFront();
+      layer.bringToFront();
     });
 
     layer.on("mouseout", function () {
-      this.setStyle({
+      layer.setStyle({
         weight: 3,
         opacity: 1,
         color: "#000000",
@@ -325,7 +325,7 @@ export default function HeatmapMapContent() {
         {/* Render GeoJSON zones - ONLY render once, then update in place */}
         {geoJsonData && (
           <GeoJSON 
-            data={geoJsonData} 
+            data={geoJsonData as any} 
             onEachFeature={handleGeoJSONEachFeature}
             ref={(geojson) => {
               if (geojson && !geoJsonLayerRef.current) {

@@ -42,7 +42,6 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         { name: t("nav.checkRealArguments"), href: "/nyaybandhu/real-life", icon: Briefcase },
       ]
     },
-    { name: t("nav.vicharakbandhu"), href: "/vicharakbandhu", icon: BookOpen },
     { name: t("nav.caseHeatmap"), href: "/case-heatmap", icon: MapPin },
     { name: t("nav.emergency") || "Emergency & Safety", href: "/emergency", icon: ShieldAlert },
     { name: t("nav.reports"), href: "/reports", icon: FileText },
@@ -152,7 +151,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Persistent Top Header */}
-        <header className="flex items-center justify-between h-14 px-6 border-b border-border bg-card/95 backdrop-blur-sm">
+        <header className="flex items-center justify-between h-14 px-6 border-b border-border bg-card">
           <div className="flex items-center gap-3">
             {/* Mobile Nav toggle button */}
             <button
@@ -187,7 +186,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="md:hidden border-b border-border bg-card/95 backdrop-blur-sm p-4 flex flex-col gap-2 shadow-lg z-50 absolute w-full top-14 left-0"
+              className="md:hidden border-b border-border bg-card p-4 flex flex-col gap-2 shadow-lg z-50 absolute w-full top-14 left-0"
             >
               {navItems.map((item) => {
                 const active = isActive(item.href);

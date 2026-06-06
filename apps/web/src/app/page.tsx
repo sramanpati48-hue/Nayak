@@ -36,7 +36,7 @@ export default function GatewayHome() {
       </video>
 
       <div className="relative z-10 min-h-screen flex flex-col">
-        <header className="flex items-center justify-between px-6 py-4 border-b border-border/60 bg-card/80 backdrop-blur-sm">
+        <header className="flex items-center justify-between px-6 py-4 border-b border-border/60 bg-card">
           <div className="flex items-center gap-2.5 font-semibold text-lg tracking-wide text-accent">
             <Scale className="h-5 w-5 text-primary" />
             <span>{t("layout.brand")}</span>

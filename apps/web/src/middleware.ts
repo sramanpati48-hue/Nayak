@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 // If Clerk publishable key isn't configured, skip Clerk middleware in local/dev so pages can load.
 const isClerkConfigured = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || process.env.CLERK_PUBLISHABLE_KEY);
 
-export default async function middleware(request: Request) {
+export default async function middleware(request: any, event: any) {
   if (!isClerkConfigured) {
     return NextResponse.next();
   }
@@ -23,7 +23,7 @@ export default async function middleware(request: Request) {
     }
   });
 
-  return handler(request as any);
+  return handler(request, event);
 }
 
 export const config = {

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { DashboardLayout } from "@/components/dashboard-layout";
+import { JudgeLayout } from "@/components/judge-layout";
 import { useVicharakBandhuStore } from "@/store/vicharakbandhu";
 import { BookOpen, Plus, Info, History, Loader2 } from "lucide-react";
 import { useTranslation } from "@/lib/language-context";
@@ -37,7 +37,7 @@ export default function VicharakBandhuDashboard() {
   };
 
   return (
-    <DashboardLayout>
+    <JudgeLayout>
       <div className="space-y-8">
         <div className="border-b border-border pb-6 flex flex-col gap-2">
           <span className="text-[10px] uppercase font-bold tracking-widest text-primary">{t("vicharakbandhu.moduleBadge")}</span>
@@ -159,6 +159,6 @@ export default function VicharakBandhuDashboard() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </JudgeLayout>
   );
 }

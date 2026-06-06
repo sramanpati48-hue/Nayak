@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef, use } from "react";
-import { DashboardLayout } from "@/components/dashboard-layout";
+import { JudgeLayout } from "@/components/judge-layout";
 import { useVicharakBandhuStore, BenchNoteEntry } from "@/store/vicharakbandhu";
 import { 
   BookOpen, 
@@ -142,28 +142,28 @@ export default function ReviewWorkspacePage({ params }: PageProps) {
 
   if (loading && !activeReview) {
     return (
-      <DashboardLayout>
+      <JudgeLayout>
         <div className="flex flex-col items-center justify-center min-h-[400px] gap-2">
           <Loader2 className="h-6 w-6 animate-spin text-primary" />
           <span className="text-xs text-muted-foreground">Retrieving case folders...</span>
         </div>
-      </DashboardLayout>
+      </JudgeLayout>
     );
   }
 
   if (error || !activeReview) {
     return (
-      <DashboardLayout>
+      <JudgeLayout>
         <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-xs text-destructive-foreground max-w-lg mx-auto mt-12">
           <h3 className="font-bold mb-1">Access Denied</h3>
           <p>{error || "Case record directory not found."}</p>
         </div>
-      </DashboardLayout>
+      </JudgeLayout>
     );
   }
 
   return (
-    <DashboardLayout>
+    <JudgeLayout>
       <div className="space-y-6">
         
         {/* Workspace Title bar */}
@@ -915,6 +915,6 @@ export default function ReviewWorkspacePage({ params }: PageProps) {
 
         </div>
       </div>
-    </DashboardLayout>
+    </JudgeLayout>
   );
 }

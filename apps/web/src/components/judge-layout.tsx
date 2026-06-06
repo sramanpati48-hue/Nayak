@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useClerk } from "@clerk/nextjs";
-import { Gavel, Scale, LogOut, Home } from "lucide-react";
+import { Gavel, Scale, LogOut, Home, BookOpen } from "lucide-react";
 import { LanguageToggle } from "./language-toggle";
 import { ThemeToggle } from "./theme-toggle";
 import { useTranslation } from "@/lib/language-context";
@@ -33,6 +33,15 @@ export function JudgeLayout({ children }: { children: React.ReactNode }) {
             {t("judge.caseQueue")}
           </Link>
           <Link
+            href="/vicharakbandhu"
+            className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium ${
+              pathname.startsWith("/vicharakbandhu") ? "bg-secondary text-accent" : "text-muted-foreground hover:text-foreground hover:bg-secondary/40"
+            }`}
+          >
+            <BookOpen className="h-4 w-4" />
+            {t("nav.vicharakbandhu")}
+          </Link>
+          <Link
             href="/"
             className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/40"
           >
@@ -52,7 +61,7 @@ export function JudgeLayout({ children }: { children: React.ReactNode }) {
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-14 px-6 border-b border-border bg-card/95 backdrop-blur-sm flex items-center justify-between">
+        <header className="h-14 px-6 border-b border-border bg-card flex items-center justify-between">
           <span className="text-xs font-semibold uppercase tracking-wider text-primary">{t("judge.workspace")}</span>
           <div className="flex items-center gap-3">
             <LanguageToggle />
