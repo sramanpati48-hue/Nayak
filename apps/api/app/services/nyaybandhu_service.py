@@ -8,6 +8,625 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.models import NyaybandhuSession, TranscriptEvent
 from app.core.rbac import DEFAULT_REVIEW_ROLES, RequestActor, has_permission
 
+CASE_ALIGNED_RESOURCES = {
+    "landlord-tenant": {
+        "card_1": {
+            "id": "card-1",
+            "question": "Do you have a signed lease agreement and proof of deposit payment?",
+            "options": [
+                "Yes, I have a signed agreement and deposit receipts.",
+                "I have bank statements showing the deposit payment, but the lease is expired/verbal.",
+                "No, it was a verbal tenancy and we paid in cash without receipts."
+            ],
+            "side": "left",
+            "answered": False
+        },
+        "card_2": {
+            "id": "card-2",
+            "question": "Has the landlord provided any written list of damages or reason for withholding?",
+            "options": [
+                "No, they blocked me or refused to give any explanation.",
+                "Yes, they claim there are damages, but they are normal wear and tear.",
+                "They verbally refused to refund, citing utility bills or minor cleaning issues."
+            ],
+            "side": "right",
+            "answered": False
+        },
+        "support_args": [
+            "A landlord cannot arbitrarily withhold the security deposit.",
+            "The tenant completed the tenancy and handed over the flat clean.",
+            "Deductions for normal wear and tear are illegal under rental laws.",
+            "The bank statement clearly proves the security deposit was paid in full.",
+            "The tenant is entitled to a full refund within the statutory timeframe.",
+            "Landlord's claims of property damage must be backed by move-in/move-out reports.",
+            "The tenant paid all rents and bills on time without default.",
+            "A formal notice will hold the landlord accountable for the withheld sum."
+        ],
+        "challenge_args": [
+            "The landlord has a right to inspect the property for tenant-caused damages.",
+            "Tenants often claim normal wear and tear for actual damages.",
+            "Rental agreement clauses may allow deductions for painting or cleaning.",
+            "If the tenant did not give proper notice, security deposit may be forfeited.",
+            "Verbal agreements make it hard to verify terms of refund.",
+            "Without a formal move-out inspection document, proving condition is hard.",
+            "If there are unpaid utility bills, the landlord can deduct them.",
+            "Sending a legal notice might lead to a counter-suit for damages."
+        ]
+    },
+    "employment/salary dispute": {
+        "card_1": {
+            "id": "card-1",
+            "question": "Do you have an official appointment/offer letter or pay slips?",
+            "options": [
+                "Yes, I have an offer letter, pay slips, and bank records.",
+                "I have emails/chats discussing my salary and job, but no official offer letter.",
+                "No, it was an informal/contractual job with no written agreements."
+            ],
+            "side": "left",
+            "answered": False
+        },
+        "card_2": {
+            "id": "card-2",
+            "question": "Did the employer provide a termination notice or reason for non-payment?",
+            "options": [
+                "No, they stopped paying and blocked communication/ignored messages.",
+                "They claimed financial difficulties or company losses.",
+                "They alleged poor performance or breach of company policy."
+            ],
+            "side": "right",
+            "answered": False
+        },
+        "support_args": [
+            "An employer is legally bound to pay for services rendered under labor laws.",
+            "Non-payment of wages violates standard employment contracts.",
+            "The employee has records of working days and completed tasks.",
+            "Arbitrary salary deductions without notice are unlawful.",
+            "The company is responsible for paying severance if terminated without notice.",
+            "Bank statement shows the regular payment stopped abruptly.",
+            "Official communications support the claim of active employment.",
+            "A labor commissioner complaint is a viable option if unpaid."
+        ],
+        "challenge_args": [
+            "The employer may claim the employee was terminated for cause/poor performance.",
+            "If there is no written contract, proving employment status is harder.",
+            "The company might claim the worker agreed to a salary cut or deferral.",
+            "If the employee resigned, notice period terms must be checked.",
+            "Provident fund or tax deductions must be verified for accuracy.",
+            "The employer may cite lack of timesheet logs or work proof.",
+            "Proving working hours in informal setups is challenging.",
+            "The other side may claim the worker caused damage to company assets."
+        ]
+    },
+    "domestic violence": {
+        "card_1": {
+            "id": "card-1",
+            "question": "Do you have any records or evidence of the abusive incidents or threats?",
+            "options": [
+                "Yes, I have photos, doctor reports, or recorded calls/messages.",
+                "I only have chat messages/emails showing threats, but no physical proof.",
+                "No, the abuse was verbal/physical with no digital or medical records."
+            ],
+            "side": "left",
+            "answered": False
+        },
+        "card_2": {
+            "id": "card-2",
+            "question": "Have you reported these incidents to the police or a women's protection cell?",
+            "options": [
+                "No, I haven't reported it yet due to fear or hope of resolution.",
+                "Yes, I filed a police complaint/FIR or spoke to a protection officer.",
+                "I approached a local community group or relative to mediate."
+            ],
+            "side": "right",
+            "answered": False
+        },
+        "support_args": [
+            "Your safety and protection under domestic violence laws are paramount.",
+            "The law provides safety orders and protection from dispossession.",
+            "Threats and physical abuse are criminal offenses.",
+            "A court can grant residency rights in the shared household.",
+            "Medical records or photos provide strong evidence of harm.",
+            "Mental and emotional cruelty are recognized under the DV Act.",
+            "Interim maintenance can be sought for safety and child support.",
+            "Reaching out to a protection officer is a highly recommended step."
+        ],
+        "challenge_args": [
+            "The other side may deny all allegations and claim they are fabricated.",
+            "Without medical reports, proving physical injury is difficult.",
+            "Lack of independent witnesses makes it a word-against-word situation.",
+            "Proving emotional abuse requires consistent documentation.",
+            "The other party may claim the conflict was a normal marital dispute.",
+            "They might allege you left the home voluntarily without reason.",
+            "Counter-claims of harassment or cruelty may be raised.",
+            "Proving the frequency of threats requires saved digital logs."
+        ]
+    },
+    "consumer complaint": {
+        "card_1": {
+            "id": "card-1",
+            "question": "Do you have the purchase invoice/receipt and active warranty details?",
+            "options": [
+                "Yes, I have the invoice, warranty card, and proof of payment.",
+                "I have digital transaction records and chat screenshots, but no invoice.",
+                "No, I didn't receive an invoice/bill for the purchase."
+            ],
+            "side": "left",
+            "answered": False
+        },
+        "card_2": {
+            "id": "card-2",
+            "question": "Have you filed a formal complaint with customer support or merchant in writing?",
+            "options": [
+                "Yes, I sent emails and registered a support ticket.",
+                "I only called customer service or complained on social media.",
+                "No, I have not made a formal written complaint yet."
+            ],
+            "side": "right",
+            "answered": False
+        },
+        "support_args": [
+            "Consumers have a right to get refunds or replacements for faulty items.",
+            "The merchant failed to deliver the promised quality of service/product.",
+            "Warranty clauses bind the seller to repair or replace the product.",
+            "The defect was reported within the active warranty period.",
+            "Selling defective goods constitutes an unfair trade practice.",
+            "There is clear evidence of the product failure (photos or videos).",
+            "The customer made repeated attempts to resolve the issue directly.",
+            "A complaint at the Consumer Forum can demand compensation for harassment."
+        ],
+        "challenge_args": [
+            "The merchant may claim the damage was caused by user misuse.",
+            "Warranty often excludes physical damage or liquid spills.",
+            "Without a purchase invoice, consumer rights are harder to enforce.",
+            "The seller might argue the defect was not reported in time.",
+            "The merchant may offer store credit instead of a cash refund.",
+            "Proving service delay requires documented delivery timelines.",
+            "The other side might claim you did not follow product instructions.",
+            "They may argue the defect is minor and doesn't warrant replacement."
+        ]
+    },
+    "cyber abuse": {
+        "card_1": {
+            "id": "card-1",
+            "question": "Have you preserved screenshots or digital links of the abusive messages/accounts?",
+            "options": [
+                "Yes, I saved high-quality screenshots and URLs of the profiles.",
+                "I have some messages, but the sender deleted them or deactivated.",
+                "No, I haven't saved any screenshots or digital evidence."
+            ],
+            "side": "left",
+            "answered": False
+        },
+        "card_2": {
+            "id": "card-2",
+            "question": "Have you reported the harassment to the social platform or Cyber Crime cell?",
+            "options": [
+                "No, I wanted to understand my legal rights first.",
+                "Yes, I reported it online on the national cyber crime portal.",
+                "I blocked the user on the platform but haven't filed a police complaint."
+            ],
+            "side": "right",
+            "answered": False
+        },
+        "support_args": [
+            "The IT Act strictly covers cyber crimes, online abuse, and fraud.",
+            "Abusive messages and threats online constitute criminal harassment.",
+            "Screenshots and digital copies are admissible evidence in court.",
+            "Online identity theft or hacking can be tracked using IP logs.",
+            "You have a right to get offensive content removed from platforms.",
+            "Cyber cells have specialized tools to track anonymous harassers.",
+            "Preserving links to the perpetrator's profiles is essential.",
+            "A formal cyber crime complaint will initiate investigation."
+        ],
+        "challenge_args": [
+            "Anonymous or fake accounts are difficult to link to a real person.",
+            "If messages are deleted or profiles deactivated, logs are hard to get.",
+            "The other side may claim their account was hacked or cloned.",
+            "Proving the origin of threats requires cooperation from platforms.",
+            "Simple screenshots can sometimes be disputed as tampered.",
+            "Cyber harassment cases often face delays in platform responses.",
+            "Proving mental intent behind online comments can be complex.",
+            "The perpetrator may reside in a different legal jurisdiction."
+        ]
+    },
+    "police complaint/FIR-related": {
+        "card_1": {
+            "id": "card-1",
+            "question": "Do you have a signed/stamped copy of your written complaint or the FIR?",
+            "options": [
+                "Yes, I have a copy of the FIR/complaint with a police station stamp.",
+                "I submitted it online and have an acknowledgment number.",
+                "No, the police refused to file it or give me a copy."
+            ],
+            "side": "left",
+            "answered": False
+        },
+        "card_2": {
+            "id": "card-2",
+            "question": "Has the police initiated any inquiry or took statement of the parties?",
+            "options": [
+                "No, there has been zero action or follow-up from the station.",
+                "Yes, the investigating officer contacted us or took initial statements.",
+                "They told me to settle the dispute mutually with the other party."
+            ],
+            "side": "right",
+            "answered": False
+        },
+        "support_args": [
+            "A copy of the written complaint or FIR is crucial for trackability.",
+            "Police are legally required to record cognizable offenses under the law.",
+            "You are entitled to a free copy of the registered FIR.",
+            "An acknowledgment number proves you officially reported the matter.",
+            "Inaction on a complaint can be escalated to higher police officers.",
+            "Filing a complaint sets a formal legal record of the incident.",
+            "The police are bound to investigate once an FIR is registered.",
+            "A magistrate can direct the police to register an FIR if they refuse."
+        ],
+        "challenge_args": [
+            "The police may deem the issue as civil rather than criminal.",
+            "Without an FIR number, tracking the progress is nearly impossible.",
+            "Police may delay action if they feel the complaint lacks evidence.",
+            "Verbal complaints to officers leave no official record.",
+            "The other party might influence the local station or counter-complain.",
+            "The police might encourage mutual settlement to close the case.",
+            "Proving police refusal to file requires written evidence.",
+            "Inquiries can take a long time to begin without active follow-up."
+        ]
+    },
+    "loan/debt harassment": {
+        "card_1": {
+            "id": "card-1",
+            "question": "Do you have records/recordings of the recovery agents' calls and threats?",
+            "options": [
+                "Yes, I have call recordings, messages, and call logs.",
+                "I only have screenshots of threatening WhatsApp messages.",
+                "No, they only call from random numbers and I have no recordings."
+            ],
+            "side": "left",
+            "answered": False
+        },
+        "card_2": {
+            "id": "card-2",
+            "question": "Did the lending app or bank send you a formal recovery/demand notice?",
+            "options": [
+                "No, they are directly sending agents or harassing contacts without notice.",
+                "Yes, I received a demand notice, but the interest/fees are arbitrary.",
+                "I received some automated emails but no formal legal notice."
+            ],
+            "side": "right",
+            "answered": False
+        },
+        "support_args": [
+            "Documenting the recovery agents' calls is crucial to prove harassment.",
+            "Harassment and threats for loan recovery violate RBI guidelines.",
+            "Lenders cannot contact your friends or relatives to shame you.",
+            "Arbitrary interest rates or hidden fees from illegal apps are invalid.",
+            "You have a right to privacy and dignified recovery procedures.",
+            "Threatening messages and call records are strong proof of coercion.",
+            "A complaint to the RBI Ombudsman can result in penalties for the lender.",
+            "Lenders must provide a formal notice before taking recovery action."
+        ],
+        "challenge_args": [
+            "The lender will argue that you defaulted on your repayment schedule.",
+            "Lending apps often operate from outside the country, making tracking hard.",
+            "If you signed access permissions, they may claim consent for contacts.",
+            "Lenders might deny that the harassing agents are hired by them.",
+            "Without call recordings, proving verbal abuse is challenging.",
+            "If you did not receive a formal notice, the dispute is harder to file.",
+            "They may claim the interest was clearly written in terms of service.",
+            "A default can negatively impact your credit score and legal standing."
+        ]
+    },
+    "maintenance": {
+        "card_1": {
+            "id": "card-1",
+            "question": "Do you have salary details or income proof of your spouse?",
+            "options": [
+                "Yes, I have salary slips or tax filings of my spouse.",
+                "I know their workplace and approximate income, but no official slips.",
+                "No income proof; they claim to be unemployed or work informally."
+            ],
+            "side": "left",
+            "answered": False
+        },
+        "card_2": {
+            "id": "card-2",
+            "question": "Are you currently earning or do you have dependent children?",
+            "options": [
+                "I am unemployed and have dependent children to support.",
+                "I have a small income but it is insufficient to support myself and children.",
+                "I am earning a basic salary but need spousal support under the law."
+            ],
+            "side": "right",
+            "answered": False
+        },
+        "support_args": [
+            "A spouse is legally obligated to maintain their dependent partner and kids.",
+            "Maintenance is a matter of right to prevent destitution.",
+            "Spouse's high standard of living indicates capacity to pay.",
+            "You are entitled to interim maintenance during the court case.",
+            "Child support is independent of marital status or disputes.",
+            "The court can assess income based on lifestyle and assets.",
+            "Unemployed spouses still have a duty to support if capable.",
+            "The law ensures you can maintain the same standard of living as your spouse."
+        ],
+        "challenge_args": [
+            "The spouse may claim they are unemployed or have zero income.",
+            "If you are earning a sufficient salary, maintenance may be denied.",
+            "Proving hidden income or cash business earnings is very difficult.",
+            "They might argue you left the marriage without a reasonable cause.",
+            "The other side may claim they have other dependents like elderly parents.",
+            "They could allege you have separate property or assets yielding income.",
+            "Determining the exact maintenance sum is subject to court discretion.",
+            "They may delay court proceedings to avoid paying interim support."
+        ]
+    },
+    "divorce/family dispute": {
+        "card_1": {
+            "id": "card-1",
+            "question": "Has there been any formal separation period or marriage counseling?",
+            "options": [
+                "Yes, we have been living separately for over a year.",
+                "We recently separated or still live in the same house but dispute is active.",
+                "We tried marriage counseling, but it did not resolve the issues."
+            ],
+            "side": "left",
+            "answered": False
+        },
+        "card_2": {
+            "id": "card-2",
+            "question": "Is there any written agreement regarding separation terms or dowry claims?",
+            "options": [
+                "No, there are no written terms; everything is contested.",
+                "We have a mutual understanding or draft agreement, but not signed.",
+                "There are active dowry allegations or police complaints involved."
+            ],
+            "side": "right",
+            "answered": False
+        },
+        "support_args": [
+            "Irretrievable breakdown of marriage is a strong ground for separation.",
+            "Mutual consent divorce is the fastest and least painful route.",
+            "You have a right to claim your Stridhan and personal belongings.",
+            "Cruelty and harassment are valid legal grounds for contested divorce.",
+            "Living separately for over a year establishes ground for divorce.",
+            "Counseling records can show efforts made to save the marriage.",
+            "Active disputes need a structured legal resolution rather than conflict.",
+            "Legal notice for restitution of conjugal rights is an option if desired."
+        ],
+        "challenge_args": [
+            "A contested divorce can take several years in court.",
+            "The other side may refuse to agree to a mutual consent divorce.",
+            "Proving allegations of cruelty or desertion requires strict evidence.",
+            "Mutual understandings are not legally binding until decreed by court.",
+            "Dowry allegations must be backed by receipts or solid proof.",
+            "Living in the same house makes proving desertion more complex.",
+            "The other party may file counter-claims for custody or maintenance.",
+            "Reconciliation attempts are favored by family courts, causing delays."
+        ]
+    },
+    "child custody/visitation": {
+        "card_1": {
+            "id": "card-1",
+            "question": "Who is currently holding the physical custody of the child?",
+            "options": [
+                "The child is with me, and the other parent is demanding custody.",
+                "The child is with the other parent, and I am denied visitation/access.",
+                "We have an informal split custody arrangement that is not working."
+            ],
+            "side": "left",
+            "answered": False
+        },
+        "card_2": {
+            "id": "card-2",
+            "question": "Is there any school record, medical record, or guardian agreement?",
+            "options": [
+                "Yes, I have all school fee receipts and medical records.",
+                "The other parent holds all the child's official documents.",
+                "We have some records, but no legal custody orders yet."
+            ],
+            "side": "right",
+            "answered": False
+        },
+        "support_args": [
+            "The welfare of the child is the supreme consideration in custody.",
+            "Both parents have a natural right to maintain contact with the child.",
+            "Denying visitation to a parent is generally not in the child's interest.",
+            "Mothers are usually preferred for physical custody of very young kids.",
+            "Financial capacity is not the sole criteria; emotional bond matters.",
+            "You have records showing you are actively caring for the child's education.",
+            "Visitation rights can be obtained through interim court orders.",
+            "The child's preference is considered by the court if they are old enough."
+        ],
+        "challenge_args": [
+            "The other parent may claim you are unfit or neglectful.",
+            "Without court orders, informal custody arrangements can be broken.",
+            "If the child has been with one parent long, courts avoid changing custody.",
+            "Proving the other parent is toxic requires strong evidence.",
+            "The child may be alienated or brainwashed against you.",
+            "Lack of original birth/school certificates makes filing harder.",
+            "Split custody is rarely granted if parents are in active conflict.",
+            "Grandparents or other relatives might contest custody claims."
+        ]
+    },
+    "property/possession": {
+        "card_1": {
+            "id": "card-1",
+            "question": "Do you have registered sale deeds, registry, or partition deeds?",
+            "options": [
+                "Yes, I have a fully registered sale deed/title deed in my name.",
+                "I have a power of attorney or inheritance papers, but not registry.",
+                "No, it is an ancestral property with no clear registered partition."
+            ],
+            "side": "left",
+            "answered": False
+        },
+        "card_2": {
+            "id": "card-2",
+            "question": "Is there an active physical encroachment or trespassing on the property?",
+            "options": [
+                "Yes, they have built a structure or physically blocked my entry.",
+                "They are threatening to trespass/sell, but physical possession is with me.",
+                "It is a joint property dispute without physical encroachment yet."
+            ],
+            "side": "right",
+            "answered": False
+        },
+        "support_args": [
+            "Registered sale deeds are the ultimate proof of property ownership.",
+            "Encroachment or trespassing on private property is a legal offense.",
+            "An injunction order can prevent the other party from selling or trespassing.",
+            "Revenue records and tax receipts support your claim of possession.",
+            "Partition of ancestral property can be claimed as a co-sharer's right.",
+            "You have right to quiet enjoyment of your registered land.",
+            "Boundary disputes can be resolved via government surveyor measurements.",
+            "Police assistance can be sought to protect possession under court order."
+        ],
+        "challenge_args": [
+            "Ancestral property disputes involve multiple legal heirs and complexities.",
+            "If the property is unregistered or lacks mutation, proving title is hard.",
+            "Physical possession is often hard to recover once lost to encroachment.",
+            "The other side may claim adverse possession if they lived there long.",
+            "Power of attorney does not confer absolute title under recent rulings.",
+            "Proving boundaries without demarcation reports is difficult.",
+            "Civil property disputes are notorious for taking years in court.",
+            "They may argue the property partition was done verbally in the past."
+        ]
+    },
+    "cheque/payment dispute": {
+        "card_1": {
+            "id": "card-1",
+            "question": "Do you have the original bounced cheque and the bank return memo?",
+            "options": [
+                "Yes, I have the original cheque, return memo, and bank slip.",
+                "I only have bank statements showing transaction failure/photo of cheque.",
+                "No, the cheque was lost or other party did not issue a cheque."
+            ],
+            "side": "left",
+            "answered": False
+        },
+        "card_2": {
+            "id": "card-2",
+            "question": "Have you sent a formal legal demand notice within 30 days of bouncing?",
+            "options": [
+                "Yes, my lawyer sent a formal notice under Section 138.",
+                "No, I only sent WhatsApp messages or called them demanding payment.",
+                "The 30-day period is still running, and I haven't sent a notice yet."
+            ],
+            "side": "right",
+            "answered": False
+        },
+        "support_args": [
+            "Cheque bouncing is a criminal offense under Section 138 of NI Act.",
+            "The bank return memo is official proof of payment default.",
+            "A formal legal notice must be sent within 30 days of bouncing.",
+            "The law presumes the cheque was issued for a legally enforceable debt.",
+            "A summary suit can be filed for quick recovery of the amount.",
+            "WhatsApp chats and invoices prove the underlying debt exists.",
+            "The other party is liable to pay double the cheque amount as penalty.",
+            "Filing a criminal case puts significant pressure on the drawer to pay."
+        ],
+        "challenge_args": [
+            "If the 30-day notice deadline is missed, Section 138 is not maintainable.",
+            "Without the original cheque and return memo, the case cannot proceed.",
+            "The other side may claim the cheque was given for security, not debt.",
+            "They might argue the signature is forged or the cheque was stolen.",
+            "If the debt was verbal, proving a legally enforceable liability is hard.",
+            "They may claim they did not receive the legal demand notice.",
+            "Proving service of notice is required to establish the offense.",
+            "The drawer may be insolvent, making final recovery difficult."
+        ]
+    },
+    "contract dispute": {
+        "card_1": {
+            "id": "card-1",
+            "question": "Do you have a signed copy of the written contract/agreement?",
+            "options": [
+                "Yes, I have a signed copy of the contract/agreement.",
+                "I have the draft contract and email confirmations, but unsigned.",
+                "No, it was a verbal understanding with no written agreement."
+            ],
+            "side": "left",
+            "answered": False
+        },
+        "card_2": {
+            "id": "card-2",
+            "question": "Is there a specific clause defining dispute resolution or breach terms?",
+            "options": [
+                "Yes, there is an arbitration or termination clause.",
+                "No, the agreement is basic and does not mention dispute procedures.",
+                "I need to review the agreement text to confirm the clauses."
+            ],
+            "side": "right",
+            "answered": False
+        },
+        "support_args": [
+            "A written contract binds both parties to the agreed terms.",
+            "Failure to honor contract clauses constitutes a breach of contract.",
+            "Emails and messages show mutual consent to the terms of the draft.",
+            "You have performed your part of the contract and deserve payment/service.",
+            "The breach has caused you direct financial or operational loss.",
+            "Specific performance of the contract can be demanded in court.",
+            "The contract defines the exact deliverables and timelines.",
+            "An arbitration clause allows for faster dispute resolution outside court."
+        ],
+        "challenge_args": [
+            "Proving contract terms is highly challenging without a signed copy.",
+            "Verbal agreements are hard to enforce and rely on witnesses.",
+            "The other side may argue you breached the terms first.",
+            "They might claim the contract was terminated legally under a clause.",
+            "Ambiguous clauses are subject to different legal interpretations.",
+            "Proving the exact financial loss from breach requires audit proof.",
+            "They may argue the contract was signed under pressure or mistake.",
+            "Jurisdiction clauses may force you to file in a different city."
+        ]
+    },
+    "other": {
+        "card_1": {
+            "id": "card-1",
+            "question": "Do you have any written records (messages, emails, receipts) of this transaction?",
+            "options": [
+                "Yes, I have comprehensive messages, emails, or receipts.",
+                "I only have minor messages or verbal witnesses.",
+                "No, it was entirely verbal with no written records."
+            ],
+            "side": "left",
+            "answered": False
+        },
+        "card_2": {
+            "id": "card-2",
+            "question": "Have you sent any formal communication or notice requesting resolution?",
+            "options": [
+                "Yes, I sent a formal email/message requesting a resolution.",
+                "No, I have only had verbal discussions so far.",
+                "I am planning to send one soon."
+            ],
+            "side": "right",
+            "answered": False
+        },
+        "support_args": [
+            "Having written records helps build a clear factual timeline.",
+            "The other party is obligated to act in good faith and resolve the issue.",
+            "A formal notice or demand letter is the right first step.",
+            "Verbal agreements are recognized by law if backed by conduct.",
+            "Your detailed explanation provides a solid foundation for a claim.",
+            "You have made reasonable efforts to settle the dispute amicably.",
+            "Bank statements showing money transfers are strong evidence.",
+            "A legal advisor can help structure this into a formal complaint."
+        ],
+        "challenge_args": [
+            "Proving the terms of a verbal understanding is always challenging.",
+            "The other side may completely deny any agreement or transaction.",
+            "Without receipts or invoices, transaction values cannot be verified.",
+            "If no notice was sent, they may claim they were unaware of the issue.",
+            "Verbal discussions leave no paper trail for the court to review.",
+            "Proving a claim without documentation requires independent witnesses.",
+            "The other party might claim the money was a gift or separate deal.",
+            "Proving timelines without digital stamps relies purely on memory."
+        ]
+    }
+}
+
 class NyaybandhuService:
     @staticmethod
     def _normalize_access_config(config: Optional[dict], actor: RequestActor) -> dict:
@@ -595,174 +1214,93 @@ class NyaybandhuService:
 
         if is_real_life:
             # --- REAL LIFE FLOW ---
+            analysis = cls.analyze_real_life_case(session.description or "", session.title or "")
+            matter_type = analysis.get("matter_type", "other")
+            res = CASE_ALIGNED_RESOURCES.get(matter_type, CASE_ALIGNED_RESOURCES["other"])
+
+            async def stream_and_save_event(speaker: str, role: str, text: str, event_type: str = "argument", card_data: dict = None):
+                yield make_sse("turn_started", {"role": role, "speaker": speaker})
+                await asyncio.sleep(0.1)
+                words = text.split(" ")
+                for i in range(0, len(words), 4):
+                    chunk = " ".join(words[i:i+4]) + " "
+                    yield make_sse("argument_chunk", {"chunk": chunk})
+                    await asyncio.sleep(0.03)
+                
+                evt = TranscriptEvent(
+                    id=str(uuid.uuid4()),
+                    session_id=session_id,
+                    speaker=speaker,
+                    role=role,
+                    text=text,
+                    event_type=event_type,
+                    card_data=card_data,
+                    created_at=datetime.utcnow()
+                )
+                db.add(evt)
+                await db.commit()
+
             if events_count <= 1:
-                # Turn 1: Support Review (role: petitioner)
-                yield make_sse("turn_started", {"role": "petitioner", "speaker": "Support Review"})
-                await asyncio.sleep(0.5)
-                p_text = (
-                    "I have reviewed the details you shared. Based on the facts, you have a valid concern. "
-                    "For example, if you are facing a deposit dispute or salary delay, the other side cannot withhold payments "
-                    "without a valid legal reason. We should explore what records you have to support your claim."
-                )
-                words = p_text.split(" ")
-                for i in range(0, len(words), 4):
-                    chunk = " ".join(words[i:i+4]) + " "
-                    yield make_sse("argument_chunk", {"chunk": chunk})
-                    await asyncio.sleep(0.1)
-                
-                evt_1 = TranscriptEvent(
-                    id=str(uuid.uuid4()),
-                    session_id=session_id,
-                    speaker="Support Review",
-                    role="petitioner",
-                    text=p_text,
-                    event_type="argument",
-                    created_at=datetime.utcnow()
-                )
-                db.add(evt_1)
-                await db.commit()
-                
-                # Turn 2: Challenge Review (role: respondent)
-                yield make_sse("turn_started", {"role": "respondent", "speaker": "Challenge Review"})
-                await asyncio.sleep(0.5)
-                r_text = (
-                    "While we want to support your claim, we must look at the challenges. "
-                    "The other side will likely argue they had a right to withhold payment or deduct expenses. "
-                    "We need to check if there is a written contract, agreement, or communication showing the agreed terms."
-                )
-                words = r_text.split(" ")
-                for i in range(0, len(words), 4):
-                    chunk = " ".join(words[i:i+4]) + " "
-                    yield make_sse("argument_chunk", {"chunk": chunk})
-                    await asyncio.sleep(0.1)
-                    
-                evt_2 = TranscriptEvent(
-                    id=str(uuid.uuid4()),
-                    session_id=session_id,
-                    speaker="Challenge Review",
-                    role="respondent",
-                    text=r_text,
-                    event_type="argument",
-                    created_at=datetime.utcnow()
-                )
-                db.add(evt_2)
-                await db.commit()
-                
-                # Turn 3: Challenge Review Clarification Card
-                card_data = {
-                    "id": "card-1",
-                    "question": "Do you have a written agreement, contract, or payment receipts?",
-                    "options": [
-                        "Yes, I have a signed written agreement and receipts.",
-                        "I only have messages/emails and bank transactions.",
-                        "No, it was a verbal agreement with no written records."
-                    ],
-                    "side": "left",
-                    "answered": False
-                }
+                # Turn 1: Support Review (arg 1)
+                async for chunk in stream_and_save_event("Support Review", "petitioner", res["support_args"][0]):
+                    yield chunk
+                # Turn 2: Challenge Review (arg 1)
+                async for chunk in stream_and_save_event("Challenge Review", "respondent", res["challenge_args"][0]):
+                    yield chunk
+                # Turn 3: Support Review (arg 2)
+                async for chunk in stream_and_save_event("Support Review", "petitioner", res["support_args"][1]):
+                    yield chunk
+                # Turn 4: Challenge Review (arg 2)
+                async for chunk in stream_and_save_event("Challenge Review", "respondent", res["challenge_args"][1]):
+                    yield chunk
+                # Turn 5: Card 1 (clarification_request)
+                card_data = res["card_1"]
                 yield make_sse("clarification_card", card_data)
-                
-                evt_3 = TranscriptEvent(
-                    id=str(uuid.uuid4()),
-                    session_id=session_id,
-                    speaker="Challenge Review",
-                    role="respondent",
-                    text="The other side may challenge our claims. Can you clarify if you have a written agreement or receipts?",
-                    event_type="clarification_request",
-                    card_data=card_data,
-                    created_at=datetime.utcnow()
-                )
-                db.add(evt_3)
-                await db.commit()
-                
-            elif events_count == 4:
-                # Turn 4: Guide (role: bench)
-                yield make_sse("turn_started", {"role": "bench", "speaker": "Guide"})
-                await asyncio.sleep(0.5)
-                b_text = (
-                    "Thank you for sharing. Having messages, emails, or bank statements is very helpful to establish "
-                    "a record of your arrangement, even without a formal contract. Let's look at when this happened to check the timeline."
-                )
-                words = b_text.split(" ")
-                for i in range(0, len(words), 4):
-                    chunk = " ".join(words[i:i+4]) + " "
-                    yield make_sse("argument_chunk", {"chunk": chunk})
-                    await asyncio.sleep(0.1)
-                    
-                card_data = {
-                    "id": "card-2",
-                    "question": "When did this issue start, and have you sent any notice?",
-                    "options": [
-                        "It started recently, and I sent a written message/email.",
-                        "It has been ongoing for months, no notice sent yet.",
-                        "It happened a long time ago, and we are in active dispute."
-                    ],
-                    "side": "right",
-                    "answered": False
-                }
+                async for chunk in stream_and_save_event(
+                    "Challenge Review", 
+                    "respondent", 
+                    f"To help us evaluate, could you clarify: {card_data['question']}", 
+                    "clarification_request", 
+                    card_data
+                ):
+                    yield chunk
+
+            elif events_count == 7:
+                # Turn 6: Support Review (arg 3)
+                async for chunk in stream_and_save_event("Support Review", "petitioner", res["support_args"][2]):
+                    yield chunk
+                # Turn 7: Challenge Review (arg 3)
+                async for chunk in stream_and_save_event("Challenge Review", "respondent", res["challenge_args"][2]):
+                    yield chunk
+                # Turn 8: Support Review (arg 4)
+                async for chunk in stream_and_save_event("Support Review", "petitioner", res["support_args"][3]):
+                    yield chunk
+                # Turn 9: Challenge Review (arg 4)
+                async for chunk in stream_and_save_event("Challenge Review", "respondent", res["challenge_args"][3]):
+                    yield chunk
+                # Turn 10: Card 2 (clarification_request)
+                card_data = res["card_2"]
                 yield make_sse("clarification_card", card_data)
+                async for chunk in stream_and_save_event(
+                    "Guide", 
+                    "bench", 
+                    f"Let's refine our understanding. Please clarify: {card_data['question']}", 
+                    "clarification_request", 
+                    card_data
+                ):
+                    yield chunk
+
+            elif events_count == 13:
+                # Turn 11 to 18: 8 remaining arguments (Support/Challenge 5 to 8)
+                for i in range(4, 8):
+                    async for chunk in stream_and_save_event("Support Review", "petitioner", res["support_args"][i]):
+                        yield chunk
+                    async for chunk in stream_and_save_event("Challenge Review", "respondent", res["challenge_args"][i]):
+                        yield chunk
                 
-                evt_4 = TranscriptEvent(
-                    id=str(uuid.uuid4()),
-                    session_id=session_id,
-                    speaker="Guide",
-                    role="bench",
-                    text=b_text,
-                    event_type="clarification_request",
-                    card_data=card_data,
-                    created_at=datetime.utcnow()
-                )
-                db.add(evt_4)
-                await db.commit()
-                
-            elif events_count == 6:
-                # Turn 5: Challenge Review (role: respondent)
-                yield make_sse("turn_started", {"role": "respondent", "speaker": "Challenge Review"})
-                await asyncio.sleep(0.5)
-                r2_text = (
-                    "A clear timeline helps verify if your claim is within the standard legal time limits. "
-                    "If you have sent a written message or notice, that shows you made an effort to resolve it. "
-                    "We must ensure we have a record of all communications."
-                )
-                words = r2_text.split(" ")
-                for i in range(0, len(words), 4):
-                    chunk = " ".join(words[i:i+4]) + " "
-                    yield make_sse("argument_chunk", {"chunk": chunk})
-                    await asyncio.sleep(0.1)
-                    
-                evt_5 = TranscriptEvent(
-                    id=str(uuid.uuid4()),
-                    session_id=session_id,
-                    speaker="Challenge Review",
-                    role="respondent",
-                    text=r2_text,
-                    event_type="argument",
-                    created_at=datetime.utcnow()
-                )
-                db.add(evt_5)
-                await db.commit()
-                
-                # Turn 6: Guide (role: bench)
-                yield make_sse("turn_started", {"role": "bench", "speaker": "Guide"})
-                await asyncio.sleep(0.5)
-                b2_text = "All details have been recorded. I will now compile these facts and prepare your Guidance Report with practical next steps."
-                words = b2_text.split(" ")
-                for i in range(0, len(words), 4):
-                    chunk = " ".join(words[i:i+4]) + " "
-                    yield make_sse("argument_chunk", {"chunk": chunk})
-                    await asyncio.sleep(0.1)
-                    
-                evt_6 = TranscriptEvent(
-                    id=str(uuid.uuid4()),
-                    session_id=session_id,
-                    speaker="Guide",
-                    role="bench",
-                    text=b2_text,
-                    event_type="argument",
-                    created_at=datetime.utcnow()
-                )
-                db.add(evt_6)
-                await db.commit()
+                # Turn 19: Guide closing note
+                async for chunk in stream_and_save_event("Guide", "bench", "All details have been recorded. I will now compile these facts and prepare your Guidance Report with practical next steps."):
+                    yield chunk
                 
                 # Final score update and verdict indicator
                 yield make_sse("score_update", {"petitioner": 75, "respondent": 65})

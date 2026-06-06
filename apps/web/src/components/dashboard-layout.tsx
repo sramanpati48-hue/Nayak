@@ -66,7 +66,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         style={{ zIndex: 0 }}
       >
         <source
-          src="/videos/background.mp4"
+          src="/bgvideo.mp4"
           type="video/mp4"
         />
       </video>

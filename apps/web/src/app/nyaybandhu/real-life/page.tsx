@@ -30,6 +30,17 @@ export default function LiveCaseAnalysisIntake() {
     { id: "precedent", label: t("practice.strategyPrecedent"), desc: t("practice.strategyPrecedentDesc") },
   ];
 
+  const safetyKeywords = [
+    "violence", "abuse", "stalk", "harm", "threat", "kill", "beat", "hit", "assault", 
+    "weapon", "harassed", "harassment", "suicide", "self-harm", "danger", 
+    "child danger", "physical abuse", "sexual abuse", "coercion"
+  ];
+  const hasDangerKeywords = safetyKeywords.some(keyword => 
+    description.toLowerCase().includes(keyword) || 
+    title.toLowerCase().includes(keyword)
+  );
+  const showHelplineFallback = error && (manualSafetyChecked || hasDangerKeywords);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
@@ -114,7 +125,7 @@ export default function LiveCaseAnalysisIntake() {
                   <strong className="block">{t("realLife.somethingWrong")}</strong>
                   <p>{error}</p>
                 </div>
-                {manualSafetyChecked && (
+                 {showHelplineFallback && (
                   <div className="p-3.5 border border-red-500/30 bg-red-500/5 rounded text-xs space-y-2">
                     <strong className="text-red-500 block">🚨 {t("realLife.dangerNotice")}</strong>
                     <p className="text-muted-foreground leading-relaxed">
@@ -179,26 +190,7 @@ export default function LiveCaseAnalysisIntake() {
               </label>
             </div>
 
-            <div className="space-y-2 text-xs">
-              <label className="font-semibold text-muted-foreground block">{t("practice.opposingStrategy")}</label>
-              <div className="grid gap-3 sm:grid-cols-3">
-                {strategies.map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => setStrategy(item.id)}
-                    className={`p-3 rounded border text-left flex flex-col justify-between transition-all ${
-                      strategy === item.id
-                        ? "border-primary bg-secondary/40"
-                        : "border-border/60 hover:bg-secondary/20 bg-card"
-                    }`}
-                  >
-                    <span className="font-bold text-foreground block">{item.label}</span>
-                    <span className="text-[10px] text-muted-foreground block mt-1.5 leading-snug">{item.desc}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
+
 
             <div className="pt-2 border-t border-border/40 flex items-center justify-between">
               <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground">

@@ -33,7 +33,7 @@ export default function LandingPage() {
         className="absolute inset-0 w-full h-full object-cover"
       >
         <source
-          src="/videos/background.mp4"
+          src="/bgvideo.mp4"
           type="video/mp4"
         />
       </video>

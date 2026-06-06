@@ -256,7 +256,7 @@ export default function SessionPage({ params }: PageProps) {
                   <AlertTriangle className="h-3.5 w-3.5" />
                   Answer the question below to proceed
                 </span>
-              ) : verdictReady || activeEvents.length >= 7 ? (
+              ) : verdictReady || activeEvents.length >= (activeSession.mode === "real-life" ? 22 : 7) ? (
                 canFinalizeSession ? (
                   <button
                     onClick={canMarkLawyerReviewComplete ? handleMarkReviewComplete : () => finalizeSession(id)}

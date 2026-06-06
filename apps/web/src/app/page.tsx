@@ -32,7 +32,7 @@ export default function GatewayHome() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
       <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover" style={{ zIndex: 0 }}>
-        <source src="/videos/background.mp4" type="video/mp4" />
+        <source src="/bgvideo.mp4" type="video/mp4" />
       </video>
 
       <div className="relative z-10 min-h-screen flex flex-col">
@@ -122,9 +122,13 @@ export default function GatewayHome() {
                     <div className="p-2 bg-secondary rounded border border-border text-primary">
                       <BookOpen className="h-5 w-5" />
                     </div>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-primary border border-primary/20 px-2 py-0.5 rounded">Rights Module</span>
                   </div>
-                  <h2 className="text-xl font-bold">{t("gateway.portalTitle")}</h2>
-                  <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{t("gateway.portalDesc")}</p>
+                  <h2 className="text-lg font-bold text-foreground">{t("home.modules.rightsTitle")}</h2>
+                  <p className="mt-2.5 text-xs text-muted-foreground leading-relaxed">{t("home.modules.rightsDesc")}</p>
+                </div>
+                <div className="mt-8 pt-4 border-t border-border/40 flex items-center gap-4 text-xs font-medium">
+                  <Link href="/know-my-rights" className="flex items-center gap-1 text-accent hover:underline">Explore Rights <ArrowRight className="h-3 w-3" /></Link>
                 </div>
               </div>
             </div>
